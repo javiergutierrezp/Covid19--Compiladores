@@ -3,20 +3,36 @@ import ply.lex as lex
 claves = {
     'int':'INT',
     'float':'FLOAT',
+    'string':'STRING',
+    'char':'CHAR',
+    'void':'VOID',
+    'Dataframe':'DATAFRAME',
     'var':'VAR',
-    'if':'IF',
-    'else':'ELSE',
-    'print':'PRINT',
-    'program':'PROGRAM'
+    'funcion':'FUNCION',
+    'CargaArchivo':'CARGAARCHIVO',
+    'si':'SI',
+    'entonces':'ENTONCES',
+    'sino':'SINO',
+    'escribe':'ESCRIBE',
+    'lee':'LEE',
+    'regresa':'REGRESA',
+    'Programa':'PROGRAMA',
+    'principal':'PRINCIPAL',
+    'desde':'DESDE',
+    'hasta':'HASTA',
+    'hacer':'HACER',
+    'mientras':'MIENTRAS',
+    'haz':'HAZ'
+
 }
 
 tokens = [
     'PUNTOYCOMA', 'COMA', 'DOSPUNTOS', 
     'CORCHETEI', 'CORCHETED', 'IGUAL', 'CTESTRING',
     'PARENTESISI', 'PARENTESISD', 
-    'MAYOR', 'MENOR', 'DIFERENTE',
+    'MAYOR', 'MENOR', 'MAYORIGUAL', 'MENORIGUAL', 'DIFERENTE',
     'SUMA', 'RESTA', 'MULTIPLICACION', 'DIVISION', 
-    'ID', 'CTEINT', 'CTEFLOAT'
+    'ID', 'IDARREGLO', 'IDMATRIZ', 'CTEINT', 'CTEFLOAT, CTECHAR'
 ] + list(claves.values())
 
 # Tokens
@@ -27,19 +43,35 @@ t_CORCHETEI = r'{'
 t_CORCHETED = r'}'
 t_IGUAL    = r'='
 t_CTESTRING = r'\".*\"'
+t_CTECHAR = r'\".\"'
 t_PARENTESISI    = r'\('
 t_PARENTESISD   = r'\)'
 t_MAYOR   = r'>'
-t_MENOR      = r'<'
-t_DIFERENTE  = r'<>'
+t_MENOR   = r'<'
+t_MAYORIGUAL   = r'>='
+t_MENORIGUAL      = r'<='
+t_DIFERENTE  = r'!='
+t_NEGACION  = r'!'
 t_SUMA    = r'\+'
 t_RESTA   = r'-'
 t_MULTIPLICACION   = r'\*'
 t_DIVISION  = r'/'
+t_Y  = r'&'
+t_O  = r'|'
 
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
+    t.type = claves.get(t.value,'ID')
+    return t
+
+def t_IDARREGLO(t):
+    r'[a-zA-Z_][a-zA-Z_0-9]*\[\d+\]'
+    t.type = claves.get(t.value,'ID')
+    return t
+
+def t_IDMATRIZ(t):
+    r'[a-zA-Z_][a-zA-Z_0-9]*\[\d+\]\[\d+\]'
     t.type = claves.get(t.value,'ID')
     return t
 
@@ -52,6 +84,7 @@ def t_CTEFLOAT(t):
     r'([0-9]+[.])[0-9]+'
     t.value = float(t.value)
     return t
+
 
 
 t_ignore = " \t"
