@@ -1,6 +1,6 @@
 program Covid19;
 var
-int i, j, p maxVariables, maxRenglones;
+int : i, j, p maxVariables, maxRenglones;
 int valor, Arreglo[10], OtroArreglo[10];
 dataframe DatosCovid;
 string VarCodiv[100];

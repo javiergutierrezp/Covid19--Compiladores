@@ -31,7 +31,7 @@ tokens = [
     'PARENTESISI', 'PARENTESISD', 'NEGACION', 'Y', 'O', 
     'MAYOR', 'MENOR', 'MAYORIGUAL', 'MENORIGUAL', 'DIFERENTE',
     'SUMA', 'RESTA', 'MULTIPLICACION', 'DIVISION', 
-    'ID', 'IDARREGLO', 'IDMATRIZ', 'CTEINT', 'CTEFLOAT', 'CTECHAR'
+    'ID', 'CTEINT', 'CTEFLOAT', 'CTECHAR', 'CORCHETECUADRADOI', 'CORCHETECUADRADOD'
 ] + list(claves.values())
 
 # Tokens
@@ -45,6 +45,8 @@ t_CTESTRING = r'\".*\"'
 t_CTECHAR = r'\".\"'
 t_PARENTESISI = r'\('
 t_PARENTESISD = r'\)'
+t_CORCHETECUADRADOI = r'\['
+t_CORCHETECUADRADOD = r'\]'
 t_MAYOR = r'\>'
 t_MENOR = r'\<'
 t_MAYORIGUAL = r'\>\='
@@ -61,16 +63,6 @@ t_O = r'\|'
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    t.type = claves.get(t.value,'ID')
-    return t
-
-def t_IDARREGLO(t):
-    r'[a-zA-Z_][a-zA-Z_0-9]*\[\d+\]'
-    t.type = claves.get(t.value,'ID')
-    return t
-
-def t_IDMATRIZ(t):
-    r'[a-zA-Z_][a-zA-Z_0-9]*\[\d+\]\[\d+\]'
     t.type = claves.get(t.value,'ID')
     return t
 

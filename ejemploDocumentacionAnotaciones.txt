@@ -1,23 +1,21 @@
-Programa Covid19;
+program Covid19;
 var
-int : i, j, p, maxVariables, maxRenglones;
-int: valor, Arreglo[10][12], OtroArreglo[10];
+int : i, j, p maxVariables, maxRenglones; √
+int: valor, Arreglo[10], OtroArreglo[10];
 Dataframe : DatosCovid;
 string: VarCodiv[100];
 
-funcion int fact (int : j);
-var int : i;
-{
-    i = j + (p - j * 2 + j);
+funcion int fact (int j)
+var int i;
+{i=j + (p - j*2+j);
     si (j==1) entonces
-    {regresa (j)}
+    {regresa (j);}
     sino
-    {regresa (j * fact (j-1))}
-    regresa (j)
+    {regresa (j * fact (j-1));}
 }
 
-funcion inicial (int : y);
-var int : x;
+funcion void inicial (int y)
+var int x;
 { x = 0;
     mientras (x < 11) haz
         {Arreglo[x] = y * z;
@@ -29,13 +27,13 @@ principal ()
     inicia (p*j - 5);
     desde i=0 hasta 9 hacer
         {Arreglo[i] = Arreglo[i] * fact(Arreglo[i] - p);}
-    CargaArchivo(DatosCovid, "C://Documentos/Covid.txt", maxVariables, maxRenglones);
+    cargaArchivo(DatosCovid, "C://Documentos/Covid.txt", maxVariables, maxRenglones);
     Variables(DatosCovid, VarCodiv, maxVariables);
     desde k = 0 hasta maxVariables hacer
         {valor = Media(DatosCovid, Variables[k]);
             escribe ("Media para la table variable", Variables[k], valor);}
     escribe ("indice de correlacion entre Variable 1 y Variable 5 de la muestra", Correlaciona(DatosCovid, Variables[1], Variables[5]));
-    mientras(i >= 0) haz
+    mientras(i >= 0)
         { escribe("resultado", Arreglo[i], fact(i+2)*valor);
             i = i - 1;
         }
