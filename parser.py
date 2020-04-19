@@ -4,16 +4,18 @@ from lexer import tokens
 
 def p_programa(p):
     '''
-        program : PROGRAM ID PUNTOYCOMA variablesProg funcp 
+        program : PROGRAMA ID PUNTOYCOMA varsProg funcp 
     '''
     p[0] = "PROGRAM COMPILED"
 
-def p_variablesProg(p):
-    '''variablesProg : variables
-                   | vacio'''
+def p_varsProg(p):
+    '''
+        varsProg : vars
+                 | vacio
+    '''
 
-def p_variables(p):
-    '''variables : VAR tipo DOSPUNTOS varId PUNTOYCOMA a'''
+def p_vars(p):
+    '''vars : VAR tipo DOSPUNTOS varId PUNTOYCOMA a'''
 
 def p_varId(p):
     '''varId : IDs varsId'''
@@ -23,7 +25,11 @@ def p_varsId(p):
               | vacio'''
 
 def p_IDs(p):
-    '''IDs : ID | IDARREGLO | IDMATRIZ'''
+    '''
+    IDs : ID
+        | IDARREGLO
+        | IDMATRIZ
+    '''
 
 def p_a(p):
     '''a : varId DOSPUNTOS tipo PUNTOYCOMA a
@@ -32,177 +38,221 @@ def p_a(p):
 
 def p_funcp(p):
     '''
-        funcp: PRINCIPAL PARENTESISI PARENTESISD bloque
+        funcp : PRINCIPAL PARENTESISI PARENTESISD bloque
     '''
 
 def p_tipo(p):
     '''
-        tipo: INT | FLOAT | STRING | CHAR
+        tipo : INT
+             | FLOAT
+             | STRING
+             | CHAR
+             | DATAFRAME
     '''
 
 def p_tipoONo(p):
     '''
-        tipoONo: tipo | vacio
+        tipoONo : tipo
+                | vacio
     '''
 
 def p_regresaONo(p):
     '''
-        regresaONo: REGRESA PARENTESISI ID PARENTESISD | vacio
+        regresaONo : REGRESA PARENTESISI ID PARENTESISD
+                   | vacio
     '''
 
+def p_parametros(p):
+    '''
+        parametros : parametro COMA parametros
+                  | parametro
+                  | vacio
+    '''
+    
+def p_parametro(p):
+    '''
+        parametro : tipo DOSPUNTOS IDs
+    '''
 
 def p_metodo(p):
     '''
-        metodo: FUNCION tipoONo ID PARENTESISI megaExpresionONo PARENTESISD PUNTOYCOMA vars CORCHETEI estatuto regresaONo CORCHETED
+        metodo : FUNCION tipoONo ID PARENTESISI parametros PARENTESISD PUNTOYCOMA vars CORCHETEI estatutoBloque regresaONo CORCHETED
     '''
 
 def p_asignacionLoop(p):
     '''
-        asignacionLoop: IGUAL megaExpresion asignacionLoop
-                    | vacio
+        asignacionLoop : IGUAL megaExpresion asignacionLoop
+                       | vacio
     '''
 
 def p_asignacion(p):
     '''
-        asignacion: IDs asignacionLoop PUNTOYCOMA
+        asignacion : IDs asignacionLoop PUNTOYCOMA
     '''
 
 
 def p_factor(p):
     '''factor : cte
-                | ID PARENTESISI megaExpresion PARENTESISD
-                | PARENTESISI megaExpresion PARENTESISD'''
+              | cargaDatos
+              | ID PARENTESISI megaExpresion PARENTESISD
+              | PARENTESISI megaExpresion PARENTESISD'''
 
 def p_termino(p):
     '''termino : factor mulDivLoop
-                 | vacio'''
+               | vacio'''
 
 def p_expresion(p):
     '''expresion : termino sumResLoop'''
 
 def p_comparacion(p):
     '''
-    MAYOR | MAYORIGUAL | MENORIGUAL | MENOR | MAYOR | IGUAL IGUAL | DIFERENTE | NEGACION
+        comparacion : MAYOR
+                    | MAYORIGUAL
+                    | MENORIGUAL
+                    | MENOR
+                    | IGUAL IGUAL
+                    | DIFERENTE
+                    | NEGACION
     '''
 
 def p_superExpresion(p):
     '''
-        superExpresion: expresion
-                                 | comparacion expresion
+        superExpresion : expresion
+                       | comparacion expresion
     '''
 
 def p_megaExpresion(p):
     '''
-        megaExpresion: superExpresion | Y | O
+        megaExpresion : superExpresion
+                      | Y
+                      | O
     '''
 
 def p_lectura(p):
     '''
-        lectura: LEE PARENTESISI varID PARENTESISD PUNTOYCOMA
+        lectura : LEE PARENTESISI varId PARENTESISD PUNTOYCOMA
     '''
 
 def p_escrituraOpciones(p):
 	 '''
-        escrituraOpciones: STRING | megaexpresion escrituraOpcionesCiclo
+        escrituraOpciones : megaExpresion escrituraOpcionesCiclo
     '''
 
 def p_escrituraOpcionesCiclo(p):
 	 '''
-        escrituraOpcionesCiclo: COMA escrituraOpciones | vacio 
+        escrituraOpcionesCiclo : COMA escrituraOpciones
+                               | vacio 
     '''
 
 def p_escritura(p):
     '''
-        escritura: ESCRIBE PARENTESISI escrituraOpciones PARENTESISD PUNTOYCOMA
+        escritura : ESCRIBE PARENTESISI escrituraOpciones PARENTESISD PUNTOYCOMA
     '''
 
 def p_cargaDatos(p):
     '''
-        cargaDatos: CARGAARCHIVO PARENTESISI ID STRING INTEGER INTEGER PARENTESISD PUNTOYCOMA
+        cargaDatos : CARGAARCHIVO PARENTESISI ID CTESTRING CTEINT CTEINT PARENTESISD PUNTOYCOMA
     '''
 
 def p_decision(p):
     '''
-        decision: SI PARENTESISI megaExpresion PARENTESISD ENTONCES bloque
-                     | SI PARENTESISI megaExpresion PARENTESISD ENTONCES bloque SINO bloque
+        decision : SI PARENTESISI megaExpresion PARENTESISD ENTONCES bloque
+                 | SI PARENTESISI megaExpresion PARENTESISD ENTONCES bloque SINO bloque
     '''
 
 def p_estatutoLoop(p):
-    '''estatutoLoop : COMA estatutoLoop
-                 | vacio'''
+    '''
+        estatutoLoop : estatutoOpciones estatutoLoop
+                     | vacio
+    '''
 
-def p_estatuto(p):
-    '''estatuto : estatuto estatutoLoop'''
+def p_estatutoBloque(p):
+    '''estatutoBloque : estatutoOpciones estatutoLoop'''
 
 def p_bloque(p):
     '''
-        bloque: CORCHETEI estatuto CORCHETED
+        bloque : CORCHETEI estatutoBloque CORCHETED
     '''
 
 def p_condicional(p):
     '''
-        condicional: MIENTRAS PARENTESISI megaexpresion PARENTESISD HAZ bloque
+        condicional : MIENTRAS PARENTESISI megaExpresion PARENTESISD HAZ bloque
     '''
 
 def p_noCondicional(p):
     '''
-        noCondicional: DESDE ID IGUAL expr HASTA expr HACER bloque
+        noCondicional : DESDE ID IGUAL expr HASTA expr HACER bloque
     '''
 
 def p_estatutoOpciones(p):
     '''
-	estatutoOpciones: estatuto PUNTOYCOMA
-    '''
-def p_estatutoOpciones(p):
-    '''
-        estatuto: asignacion | lectura | escritura | cargaDatos | decision | condicional | noCondicional | expresion | metodo
+	    estatutoOpciones : estatuto PUNTOYCOMA
+                         | vacio
     '''
 
-def p_megaExpresionONo(p):
-    '''megaExpresionONo : megaExpresiones | vacio'''
-
-def p_megaExpresiones(p):
-    '''megaExpresiones : megaExpresion megaExpresionLoop'''
-
-def megaExpresionLoop(p):
-    '''megaExpresionLoop : COMA megaExpresiones
-              | vacio'''
+def p_estatuto(p):
+    '''
+        estatuto : asignacion
+                 | lectura
+                 | escritura
+                 | decision
+                 | condicional
+                 | noCondicional
+                 | expresion
+                 | metodo
+    '''
 
 def p_fact(p):
-    '''fact : cte
-                | ID PARENTESISI megaExpresion PARENTESISD
-                | PARENTESISI expr PARENTESISD'''
+    '''
+        fact : cte 
+             | ID PARENTESISI megaExpresion PARENTESISD
+             | PARENTESISI expr PARENTESISD
+    '''
 
 def p_cte(p):
-    '''cte : ID
-              | CTEINT
-              | CTEFLOAT'''
+    '''
+        cte : ID
+            | CTEINT
+            | CTEFLOAT
+            | CTESTRING
+            | CTECHAR
+    '''
 
 def p_mulDivLoop(p):
-    '''mulDivLoop : mulDiv factor
-                 | vacio'''
+    '''
+        mulDivLoop : mulDiv factor
+                   | vacio
+    '''
 
 def p_term(p):
-    '''term : fact mulDivLoop
-                 | vacio'''
+    '''
+        term : fact mulDivLoop
+             | vacio
+    '''
 
 def p_mulDiv(p):
-    '''mulDiv : SUMA
-             | RESTA'''
+    '''
+        mulDiv : MULTIPLICACION
+               | DIVISION
+    '''
 
 def p_sumResLoop(p):
-    '''sumResLoop : sumRes term
-                 | vacio'''
+    '''
+        sumResLoop : sumRes term
+                   | vacio
+    '''
 
 def p_expr(p):
     '''expr : term sumResLoop'''
 
 def p_sumRes(p):
-    '''sumRes : SUMA
-             | RESTA'''
+    '''
+        sumRes : SUMA
+               | RESTA
+    '''
 
 def p_vacio(p):
-    '''vacio :'''
+    '''vacio : '''
 
 def p_error(p):
     print("ERROR {}".format(p))

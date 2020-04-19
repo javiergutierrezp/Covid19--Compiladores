@@ -1,0 +1,7 @@
+Programa Covid19;
+var int: i;
+
+principal()
+{
+    escribe("hola");;
+}
