@@ -1,6 +1,7 @@
 import sys
 import ply.yacc as yacc
 from lexer import tokens
+from semantics import directory
 
 def p_programa(p):
     '''
