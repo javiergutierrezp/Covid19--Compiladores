@@ -1,10 +1,9 @@
 import sys
 from antlr4 import *
-from covid19Lexer import covid19Lexer
-from covid19Parser import covid19Parser
-from covid19Listener import covid19Listener
+from grammar.covid19Lexer import covid19Lexer
+from grammar.covid19Parser import covid19Parser
+from grammar.covid19Listener import covid19Listener
 from antlr4.tree.Trees import Trees
-import logging
 
 def main(argv):
     input_stream = FileStream(argv[1])
@@ -15,10 +14,6 @@ def main(argv):
     walker = ParseTreeWalker()
     tree = parser.programa()
     walker.walk(printer, tree)
-
-    
-    
-    # print(Trees.toStringTree(tree, None, parser))
 
     if parser.getNumberOfSyntaxErrors() == 0:
         print("PROGRAMA CORRECTO")

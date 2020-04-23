@@ -1,7 +1,5 @@
-# Generated from covid19.g4 by ANTLR 4.8
+# Generated from grammar/covid19.g4 by ANTLR 4.8
 from antlr4 import *
-from semantics import directory
-
 if __name__ is not None and "." in __name__:
     from .covid19Parser import covid19Parser
 else:
@@ -17,6 +15,7 @@ class covid19Listener(ParseTreeListener):
     # Exit a parse tree produced by covid19Parser#nocondicional.
     def exitNocondicional(self, ctx:covid19Parser.NocondicionalContext):
         pass
+
 
     # Enter a parse tree produced by covid19Parser#condicional.
     def enterCondicional(self, ctx:covid19Parser.CondicionalContext):
@@ -182,7 +181,6 @@ class covid19Listener(ParseTreeListener):
 
     # Enter a parse tree produced by covid19Parser#varx.
     def enterVarx(self, ctx:covid19Parser.VarxContext):
-        # print(ctx.getRuleContext().get)
         pass
 
     # Exit a parse tree produced by covid19Parser#varx.
@@ -219,23 +217,6 @@ class covid19Listener(ParseTreeListener):
 
     # Enter a parse tree produced by covid19Parser#metodo.
     def enterMetodo(self, ctx:covid19Parser.MetodoContext):
-        print(ctx.ID())
-        directory[ctx.ID()] = { 
-            vars: {}
-        }
-        # if vartype == None:
-        #     vartype = (ctx.VOID())
-        # else:
-        #     vartype = (ctx.vartypes().getText())
-
-        # id = (ctx.ID())
-        # func = Function(id, vartype, [])
-        # self.compiler._add_function(func)
-
-        # print(ctx.getChild(2))
-        # print(ctx.getChild(1))
-
-        # print(type(ctx:covid19Parser.MetodoContext))
         pass
 
     # Exit a parse tree produced by covid19Parser#metodo.

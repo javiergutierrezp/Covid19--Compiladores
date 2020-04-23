@@ -6,7 +6,7 @@ Dataframe : DatosCovid;
 string: VarCodiv[100];
 
 funcion int fact (int : j, char : i);
-var int : i;
+var int : k;
 {
     i = j + (p - j * 2 + j);
     si (j==1) entonces
