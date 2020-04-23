@@ -5,8 +5,8 @@ int: valor, Arreglo[10][12], OtroArreglo[10];
 Dataframe : DatosCovid;
 string: VarCodiv[100];
 
-funcion int fact (int : j);
-var int : i;
+funcion int fact (int : j, char : i);
+var int : k;
 {
     i = j + (p - j * 2 + j);
     si (j==1) entonces
@@ -22,6 +22,8 @@ var int : x;
     mientras (x < 11) haz
         {Arreglo[x] = y * z;
         x = x + 1;}
+    Arreglo[i] = Arreglo[i] * fact(Arreglo[i] - p);
+    escribe ("Media para la table variable", Variables[k], valor);
 }
 
 principal () 
