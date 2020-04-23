@@ -4,6 +4,7 @@ from grammar.covid19Lexer import covid19Lexer
 from grammar.covid19Parser import covid19Parser
 from grammar.covid19Listener import covid19Listener
 from antlr4.tree.Trees import Trees
+from semantics import function_directory, printDirectory
 
 def main(argv):
     input_stream = FileStream(argv[1])
@@ -14,6 +15,8 @@ def main(argv):
     walker = ParseTreeWalker()
     tree = parser.programa()
     walker.walk(printer, tree)
+    printDirectory(function_directory)
+    
 
     if parser.getNumberOfSyntaxErrors() == 0:
         print("PROGRAMA CORRECTO")

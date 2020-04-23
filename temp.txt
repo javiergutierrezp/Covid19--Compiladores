@@ -1,6 +1,6 @@
 # Generated from grammar/covid19.g4 by ANTLR 4.8
 from antlr4 import *
-from semantics import *
+from semantics import functionDirectory, Function, Variable
 
 if __name__ is not None and "." in __name__:
     from grammar.covid19Parser import covid19Parser
@@ -219,12 +219,17 @@ class covid19Listener(ParseTreeListener):
 
     # Enter a parse tree produced by covid19Parser#metodo.
     def enterMetodo(self, ctx:covid19Parser.MetodoContext):
-        vars_directory = getVarDirectory(ctx.var()) # Args
-        extendVarDirectory(vars_directory, ctx.varx().var()) # Varx
-        if str(ctx.getChild(3)) == "(":
-            function_directory[str(ctx.ID())] = Function(str(ctx.getChild(2)), ctx.tipo().getText(), vars_directory)
+        # Get function name for the symbols table
+        arguments = ctx.args().getText().split(',')
+        if arguments[0] == '': numArguments = 0
+        else: numArguments = len(arguments)
+        if str(ctx.getChild(1)) == "func":
+            functionDirectory[ctx.ID()] = Function(str(ctx.getChild(2)), ctx.tipo().getText(), None)
         else:
-            function_directory[str(ctx.ID())] = Function(str(ctx.getChild(1)), "void", vars_directory)
+            functionDirectory[ctx.ID()] = Function(str(ctx.getChild(2)), "void", None)
+            self.funcName = str(ctx.getChild(1))
+            self.functionTable.append({"name": self.funcName, "type": "void", "numberOfArguments": numArguments, "arguments": arguments, "currentCuadruple": len(self.cuadruplos), "memory": "NULL"})
+        self.tempTable[self.funcName] = []
         pass
 
     # Exit a parse tree produced by covid19Parser#metodo.
