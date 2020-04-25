@@ -1,3 +1,20 @@
+function_directory = {}
+
+class Quad:
+  def __init__(self, operator, operand_left, operand_right, result_id):
+    self.operator = operator
+    self.operand_left = operand_left
+    self.operand_right = operand_right
+    self.result_id = result_id
+
+  def __repr__(self):
+    return "{}, {}, {}, {}".format(
+      self.operator,
+      self.operand_left,
+      self.operand_right,
+      self.result_id,
+    )
+
 class Variable:
   def __init__(self, name, type, dimensions):
     self.name = name
@@ -52,4 +69,38 @@ def getVarDirectory(varList):
       print("La variable '{}' ya fue declarada anteriormente.".format(name))
   return var_directory
 
-function_directory = {}
+################# Cuadruplos #################
+
+quads = []
+temp_number = 1
+operators_queue = []
+ids_queue = []
+jumps_queue = []
+operators = [] #TODO: Implementar
+
+def higherImportance(operator1, operator2):
+  # TODO: Implementar funcion que determina si operator 1 es de
+  # mayor importancia que operator 2
+  return 0
+
+def appendQuads(expression):
+  for i in range(len(expression)):
+    left_operand = None
+    right_operand = None
+    operator = None
+    if expression[i] == '(':
+      print('parentesisIzq')
+    elif expression[i] == ')':
+      print('parentesisDer')
+    else: # o un operador, o un operando
+      if expression[i] in operators: # operador
+        if higherImportance(operators_queue[len(operators_queue) - 1], expression[i]):
+          # En la pila encontramos a alguien con "mayor importancia" que tú...
+          operator = operators_queue.pop()
+        else:
+          operators_queue.append(expression[i])
+      else: # operando
+        print("tbd")
+  return "tbd"
+
+

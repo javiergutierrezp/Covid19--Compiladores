@@ -1,0 +1,6 @@
+Programa Covid19;
+
+principal () 
+{
+    k = a * b * d + c;
+}

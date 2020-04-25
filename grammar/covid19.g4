@@ -116,7 +116,7 @@ asignacion : identificador IGUAL megaexpresion // (identificador IGUAL)*
 identificador : ID (CORCHETECUADRADOI cte CORCHETECUADRADOD (CORCHETECUADRADOI cte CORCHETECUADRADOD)?)?
               ;           
 
-programa : PROGRAMA identificador PUNTOYCOMA varx (metodo)* funcp
+programa : PROGRAMA identificador PUNTOYCOMA varx? (metodo)* funcp
          ;     
 
 varx : VAR (var (COMA identificador)* PUNTOYCOMA)+
