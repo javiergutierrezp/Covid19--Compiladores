@@ -1,7 +1,9 @@
 class cuboSemantico():
     def __init__(self):
         self.cube = {
+
             #########################  INT  #############################
+
             "int": {
                 "*" : {
                     "int": "int",
@@ -222,6 +224,7 @@ class cuboSemantico():
                     "Dataframe": "Error: No se puede comparar un String con un Dataframe."
                 }
             },
+
                 ######################### CHAR #############################
             "char": {
                 "*" : {
@@ -241,7 +244,7 @@ class cuboSemantico():
                 "+" : {
                     "int": "Error: No se puede sumar con un Char.",
                     "float": "Error: No se puede sumar con un Char.",
-                    "char": "Error: No se puede sumar con un Char.",
+                    "char": "string",
                     "string": "string",
                     "Dataframe": "Error: No se puede sumar con un Char."
                 },
@@ -284,20 +287,20 @@ class cuboSemantico():
                     "int": "Error: No se puede comparar en Char con un Int.",
                     "float": "Error: No se puede comparar en Char con un Float.",
                     "char": "int",
-                    "string": "int",
+                    "string": "Error: No se puede comparar en Char con un String.",
                     "Dataframe": "Error: No se puede comparar en Char con un Dataframe."
                 },
                 "!=" : {
                     "int": "Error: No se puede comparar en Char con un Int.",
                     "float": "Error: No se puede comparar en Char con un Float.",
                     "char": "int",
-                    "string": "int",
+                    "string": "Error: No se puede comparar en Char con un String.",
                     "Dataframe": "Error: No se puede comparar en Char con un Dataframe."
                 }
             },
 
-
                 ######################### DATAFRAME #############################
+
             "Dataframe": {
                 "*" : {
                     "int": "Error: No se puede multiplicar con un Dataframe.",
