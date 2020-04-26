@@ -85,6 +85,7 @@ class covid19Listener(ParseTreeListener):
     # Enter a parse tree produced by covid19Parser#megaexpresion.
     def enterMegaexpresion(self, ctx:covid19Parser.MegaexpresionContext):
         # print(ctx.getRuleContext().getSourceInterval())
+        
         appendQuads(ctx.getText())
         pass
 
