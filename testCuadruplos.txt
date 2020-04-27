@@ -2,7 +2,5 @@ Programa Covid19;
 
 principal () 
 {
-    k = palabra + b / d + c;
-    k = palabra * b / d * c;
-    k = a * (b + c / (d - e) * f + g) - h;
+    escribe("hola", 1, 2 + 3);
 }

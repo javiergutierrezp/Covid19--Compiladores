@@ -1,11 +1,12 @@
 # Generated from grammar/covid19.g4 by ANTLR 4.8
 from antlr4 import *
+if __name__ is not None and "." in __name__:
+    from .covid19Parser import covid19Parser
+else:
+    from covid19Parser import covid19Parser
+
 from semantics import *
 
-if __name__ is not None and "." in __name__:
-    from grammar.covid19Parser import covid19Parser
-else:
-    from grammar.covid19Parser import covid19Parser
 
 # This class defines a complete listener for a parse tree produced by covid19Parser.
 class covid19Listener(ParseTreeListener):
@@ -84,9 +85,6 @@ class covid19Listener(ParseTreeListener):
 
     # Enter a parse tree produced by covid19Parser#megaexpresion.
     def enterMegaexpresion(self, ctx:covid19Parser.MegaexpresionContext):
-        # print(ctx.getRuleContext().getSourceInterval())
-        
-        appendQuads(ctx.getText())
         pass
 
     # Exit a parse tree produced by covid19Parser#megaexpresion.

@@ -1,4 +1,10 @@
 function_directory = {}
+quads = []
+operators_queue = []
+ids_queue = []
+jumps_queue = []
+operators = ['+','-','*','/', ';'] #TODO: Implementar
+temp_number = [0]
 
 class Quad:
   def __init__(self, operator, operand_left, operand_right, result_id):
@@ -32,6 +38,48 @@ class Function:
 
   def __repr__(self):
     return "{}, {}, {}".format(self.name, self.type, str(self.vars_table))
+
+def insertIdToQueue(identificator):
+  ids_queue.append(identificator)
+
+def insertOperator(operator):
+  operators_queue.append(operator)
+
+def deleteParenthesis():
+  operators_queue.pop()
+
+def insertParenthesis():
+  operators_queue.append('(')
+
+def leaving(origin):
+  allowed_operators = None
+  if origin == 'factor':
+    allowed_operators = ['*', '/']
+  elif origin == 'termino':
+    allowed_operators = ['+', '-']
+
+  if len(operators_queue) >= 1 and len(ids_queue) >= 2 and operators_queue[len(operators_queue) - 1] in allowed_operators:
+      operator = operators_queue.pop()
+      right_operand = ids_queue.pop()
+      left_operand = ids_queue.pop()
+      generateQuad(operator, left_operand, right_operand, temp_number[0], True)
+
+def readId(identificator):
+  generateQuad('lee', identificator, -1, temp_number[0], False)
+
+def writeExpression():
+  write("t{}".format(temp_number[0] - 1))
+
+def write(idOrCte):
+  generateQuad('escribe', idOrCte, -1, temp_number[0], False)
+
+def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
+  new_quad = Quad(operator, left_operand, right_operand, "t{}".format(temp_num))
+  quads.append(new_quad)
+  if append_temp:
+    ids_queue.append("t{}".format(temp_num))
+  print(new_quad)
+  temp_number[0] = temp_num + 1
 
 def printDirectory(directory):
   for key in directory:
@@ -93,76 +141,5 @@ def expressionInMegaExpressions(expression):
 #     else:
 #       break
 #   return count
-
-quads = []
-operators_queue = []
-ids_queue = []
-jumps_queue = []
-operators = ['+','-','*','/', ';'] #TODO: Implementar
-temp_number = 0
-  
-def generateQuad(temp_number):
-  operator = operators_queue.pop()
-  right_operand = ids_queue.pop()
-  left_operand = ids_queue.pop()
-  temp_number += 1
-  ids_queue.append("t{}".format(temp_number))
-  quads.append(Quad(operator, left_operand, right_operand, "t{}".format(temp_number)))
-
-def appendQuads(expression):
-  # print(expressionInMegaExpressions(expression))
-  if not expressionInMegaExpressions(expression):
-    expression = expression + ';'
-    print(expression)
-    variable = ""
-    for i in range(len(expression)):
-      left_operand = None
-      right_operand = None
-      operator = None
-      if expression[i] == '(':
-        operators_queue.append(expression[i])
-        ids_queue.append(expression[i])
-      elif expression[i] == ')':
-        ids_queue.append(variable)
-        variable = ""
-        generateQuad(temp_number)
-      else: # o un operador, o un operando
-        if expression[i] in operators: # operador
-          ids_queue.append(variable)
-          variable = ""
-          char = expression[i]
-          if expression[i] == ';':
-            char = operators_queue[len(operators_queue) - 1]
-          print("operators_queue: {}".format(operators_queue))
-          print("ids_queue: {}".format(ids_queue))
-          print("RelativeLen: {}".format(len(operators_queue)))
-          if len(operators_queue) >= 1 and len(ids_queue) >= 2:
-            if char in ['*','/']:
-              while len(operators_queue) >= 1 and operators_queue[len(operators_queue) - 1] in ['*','/']: # Hay operadores de mayor o igual importancia
-                print("inside while...")
-                print(operators_queue)
-                print(operators_queue[len(operators_queue) - 1])
-                print(operators_queue[len(operators_queue) - 1] in ['*','/'])
-                # print(operators_queue)
-                generateQuad(temp_number)
-              # No hay operadores de mayor o igual importancia
-              if char != ';':
-                operators_queue.append(char)
-            elif char in ['-','+']:
-              while len(operators_queue) >= 1 and operators_queue[len(operators_queue) - 1] in ['*','/','-','+']: # Hay operadores de mayor o igual importancia
-                print("inside while...")
-                print(operators_queue)
-                generateQuad(temp_number)
-              # No hay operadores de mayor o igual importancia
-              operators_queue.append(char)
-          else:
-            operators_queue.append(expression[i])
-        else: # operando
-          variable += expression[i]
-    print("-----------")
-    for i in range(len(quads)):
-      print(quads[i])
-      print("***********")
-  return "tbd"
 
 

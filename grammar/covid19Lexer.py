@@ -5,6 +5,9 @@ from typing.io import TextIO
 import sys
 
 
+from semantics import *
+
+
 
 def serializedATN():
     with StringIO() as buf:

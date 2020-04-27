@@ -1,5 +1,9 @@
 grammar covid19;
 
+@header {
+from semantics import *
+}
+
 // Keywords
 INT: 'int';
 FLOAT: 'float';
@@ -72,16 +76,16 @@ bloque : CORCHETEI (estatuto)+ CORCHETED
 decision : SI PARENTESISI megaexpresion PARENTESISD ENTONCES bloque (SINO bloque)?
          ;     
 
-cargadatos : CARGAARCHIVO PARENTESISI ID COMA cte COMA cte COMA cte PARENTESISD
+cargadatos : CARGAARCHIVO PARENTESISI ID COMA (identificador | cte) COMA (identificador | cte) COMA (identificador | cte) PARENTESISD
            ;   
 
-cte : CTESTRING | CTEINT | identificador | CTEFLOAT | CTECHAR
+cte : CTESTRING | CTEINT | CTEFLOAT | CTECHAR
     ;
 
-lectura : LEE PARENTESISI ((identificador) (COMA identificador)*) PARENTESISD
+lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA identificador {readId($identificador.text)})*) PARENTESISD
         ;
 
-escritura : ESCRIBE PARENTESISI (cte | megaexpresion) (COMA (cte | megaexpresion))* PARENTESISD
+escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {writeExpression()}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {writeExpression()}))* PARENTESISD
           ;
 
 // En escritura estamos aceptando cualquier cte como letrero, atacar con semantica?
@@ -92,13 +96,13 @@ megaexpresion : (superexpresion | Y | O)
 superexpresion : expresion ((MAYOR | MENOR | MAYORIGUAL | MENORIGUAL | IGUALCOMP | DIFERENTE) expresion)?
               ;
 
-expresion : termino ((SUMA | RESTA) termino)*
+expresion : termino {leaving('termino')} ((SUMA {insertOperator($SUMA.text)} | RESTA {insertOperator($RESTA.text)}) termino {leaving('termino')})* 
           ;
 
-termino : factor ((MULTIPLICACION | DIVISION) factor)*
+termino : factor {leaving('factor')} ((MULTIPLICACION {insertOperator($MULTIPLICACION.text)} | DIVISION {insertOperator($DIVISION.text)}) factor {leaving('factor')})*
         ;      
 
-factor : cte | llamadametodo  | PARENTESISI megaexpresion PARENTESISD 
+factor : identificador {insertIdToQueue($identificador.text)} | cte {insertIdToQueue($cte.text)} | llamadametodo  | PARENTESISI {insertParenthesis()} megaexpresion PARENTESISD {deleteParenthesis()}
        ;       
 
 estatuto : (llamadametodo PUNTOYCOMA? | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
@@ -110,10 +114,10 @@ llamadametodo : ID PARENTESISI megaexpresion (COMA megaexpresion)* PARENTESISD
 regresa : REGRESA PARENTESISI megaexpresion PARENTESISD
         ;
 
-asignacion : identificador IGUAL megaexpresion // (identificador IGUAL)*
+asignacion : identificador IGUAL megaexpresion
            ;
 
-identificador : ID (CORCHETECUADRADOI cte CORCHETECUADRADOD (CORCHETECUADRADOI cte CORCHETECUADRADOD)?)?
+identificador : ID (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD)?)?
               ;           
 
 programa : PROGRAMA identificador PUNTOYCOMA varx? (metodo)* funcp
