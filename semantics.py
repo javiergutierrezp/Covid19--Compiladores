@@ -1,10 +1,12 @@
 function_directory = {}
 quads = []
-operators_queue = []
-ids_queue = []
-jumps_queue = []
+operators_stack = []
+ids_stack = []
+type_stack = []
+jumps_stack = []
 operators = ['+','-','*','/', ';'] #TODO: Implementar
 temp_number = [0]
+scope = [None]
 
 class Quad:
   def __init__(self, operator, operand_left, operand_right, result_id):
@@ -39,42 +41,64 @@ class Function:
   def __repr__(self):
     return "{}, {}, {}".format(self.name, self.type, str(self.vars_table))
 
-def insertIdToQueue(identificator):
-  ids_queue.append(identificator)
+def receiveVar(var):
+  print(var)
+
+def setScope(s):
+  print(s)
+  if s != '':
+    scope[0] = s
+  else:
+    scope[0] = None
+
+def insertTypeToStack(type):
+  type_stack.append(type)
+
+def insertCteToStack(cte):
+  ids_stack.append(cte)
+
+def insertIdToStack(identificator):
+  if scope[0]:
+    print(function_directory)
+    print(function_directory[scope[0]])
+    print(function_directory[scope[0]].vars_table)
+    print(function_directory[scope[0]].vars_table[identificator])
+    print(function_directory[scope[0]].vars_table[identificator].type)
+    type_stack.append(function_directory[scope[0]].vars_table[identificator].type)
+  else:
+    print("probably in principal -> global scope")
+  ids_stack.append(identificator)
 
 def insertOperator(operator):
-  operators_queue.append(operator)
+  operators_stack.append(operator)
 
 def deleteParenthesis():
-  operators_queue.pop()
+  operators_stack.pop()
 
 def insertParenthesis():
-  operators_queue.append('(')
+  operators_stack.append('(')
 
 def leaving(origin):
   allowed_operators = None
   if origin == 'factor':
-    # print("in factor")
     allowed_operators = ['*', '/']
   elif origin == 'termino':
-    # print("in termino")
     allowed_operators = ['+', '-']
+  elif origin == 'comparacion':
+    allowed_operators = ['>', '<', '>=', '<=', '==', '!=']
+  elif origin == 'union':
+    allowed_operators = ['&', '|']
   elif origin == 'asignacion':
-    # print("in asignacion")
     allowed_operators = ['=']
 
-  if len(operators_queue) >= 1 and len(ids_queue) >= 2 and operators_queue[len(operators_queue) - 1] in allowed_operators:
-      operator = operators_queue.pop()
-      right_operand = ids_queue.pop()
-      left_operand = ids_queue.pop()
+  if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
+      operator = operators_stack.pop()
+      right_operand = ids_stack.pop()
+      left_operand = ids_stack.pop()
       if (origin != 'asignacion'):
-        # print("in genQuad no asignacion")
         generateQuad(operator, left_operand, right_operand, temp_number[0], True)
       else:
-        # print(right_operand, left_operand)
-        # print("in genQuad asignacion")
         generateQuad(operator, right_operand, None, left_operand, False)
-      
 
 def readId(identificator):
   generateQuad('lee', identificator, -1, temp_number[0], False)
@@ -92,14 +116,10 @@ def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
   quads.append(new_quad)
   if append_temp:
-    ids_queue.append("t{}".format(temp_num))
+    ids_stack.append("t{}".format(temp_num))
   print(new_quad)
   if type(temp_num) == int:
     temp_number[0] = temp_num + 1
-
-def printDirectory(directory):
-  for key in directory:
-    print(directory[key])
 
 def getVariable(var):
   name = var.getChild(2).getText()
@@ -145,14 +165,14 @@ def expressionInMegaExpressions(expression):
   megaexpressions.append(expression)
   return ret
 
-# def getRelativeLen(operators_queue):
+# def getRelativeLen(operators_stack):
 #   print("getting relative len")
 #   count = 0
-#   print(operators_queue)
-#   print(len(operators_queue) - 1)
-#   for i in range(len(operators_queue) - 1, -1, -1):
+#   print(operators_stack)
+#   print(len(operators_stack) - 1)
+#   for i in range(len(operators_stack) - 1, -1, -1):
 #     print("inside for...")
-#     if operators_queue[i] != '(':
+#     if operators_stack[i] != '(':
 #       count += 1
 #     else:
 #       break
