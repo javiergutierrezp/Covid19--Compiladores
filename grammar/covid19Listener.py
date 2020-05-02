@@ -220,12 +220,6 @@ class covid19Listener(ParseTreeListener):
 
     # Enter a parse tree produced by covid19Parser#metodo.
     def enterMetodo(self, ctx:covid19Parser.MetodoContext):
-        vars_directory = getVarDirectory(ctx.var()) # Args
-        extendVarDirectory(vars_directory, ctx.varx().var()) # Varx
-        if str(ctx.getChild(3)) == "(":
-            function_directory[str(ctx.ID())] = Function(str(ctx.getChild(2)), ctx.tipo().getText(), vars_directory)
-        else:
-            function_directory[str(ctx.ID())] = Function(str(ctx.getChild(1)), "void", vars_directory)
         pass
 
     # Exit a parse tree produced by covid19Parser#metodo.

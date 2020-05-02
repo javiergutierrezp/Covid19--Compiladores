@@ -54,15 +54,27 @@ def insertParenthesis():
 def leaving(origin):
   allowed_operators = None
   if origin == 'factor':
+    # print("in factor")
     allowed_operators = ['*', '/']
   elif origin == 'termino':
+    # print("in termino")
     allowed_operators = ['+', '-']
+  elif origin == 'asignacion':
+    # print("in asignacion")
+    allowed_operators = ['=']
 
   if len(operators_queue) >= 1 and len(ids_queue) >= 2 and operators_queue[len(operators_queue) - 1] in allowed_operators:
       operator = operators_queue.pop()
       right_operand = ids_queue.pop()
       left_operand = ids_queue.pop()
-      generateQuad(operator, left_operand, right_operand, temp_number[0], True)
+      if (origin != 'asignacion'):
+        # print("in genQuad no asignacion")
+        generateQuad(operator, left_operand, right_operand, temp_number[0], True)
+      else:
+        # print(right_operand, left_operand)
+        # print("in genQuad asignacion")
+        generateQuad(operator, right_operand, None, left_operand, False)
+      
 
 def readId(identificator):
   generateQuad('lee', identificator, -1, temp_number[0], False)
@@ -74,12 +86,16 @@ def write(idOrCte):
   generateQuad('escribe', idOrCte, -1, temp_number[0], False)
 
 def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
-  new_quad = Quad(operator, left_operand, right_operand, "t{}".format(temp_num))
+  if type(temp_num) == int:
+    new_quad = Quad(operator, left_operand, right_operand, "t{}".format(temp_num))
+  else: 
+    new_quad = Quad(operator, left_operand, right_operand, temp_num)
   quads.append(new_quad)
   if append_temp:
     ids_queue.append("t{}".format(temp_num))
   print(new_quad)
-  temp_number[0] = temp_num + 1
+  if type(temp_num) == int:
+    temp_number[0] = temp_num + 1
 
 def printDirectory(directory):
   for key in directory:

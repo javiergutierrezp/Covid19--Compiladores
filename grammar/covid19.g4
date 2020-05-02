@@ -90,11 +90,11 @@ escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | ct
 
 // En escritura estamos aceptando cualquier cte como letrero, atacar con semantica?
 
-megaexpresion : (superexpresion | Y | O)
+megaexpresion : superexpresion ((Y | O) superexpresion)*
               ;
 
 superexpresion : expresion ((MAYOR | MENOR | MAYORIGUAL | MENORIGUAL | IGUALCOMP | DIFERENTE) expresion)?
-              ;
+               ;
 
 expresion : termino {leaving('termino')} ((SUMA {insertOperator($SUMA.text)} | RESTA {insertOperator($RESTA.text)}) termino {leaving('termino')})* 
           ;
@@ -114,7 +114,7 @@ llamadametodo : ID PARENTESISI megaexpresion (COMA megaexpresion)* PARENTESISD
 regresa : REGRESA PARENTESISI megaexpresion PARENTESISD
         ;
 
-asignacion : identificador IGUAL megaexpresion
+asignacion : identificador {insertIdToQueue($identificador.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
            ;
 
 identificador : ID (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD)?)?

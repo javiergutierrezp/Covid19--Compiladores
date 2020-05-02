@@ -1,6 +1,9 @@
 Programa Covid19;
+var
+int : j;
 
 principal () 
 {
-    escribe("hola", 1, 2 + 3);
+   j = a * b;
+   lee(a,b);
 }
