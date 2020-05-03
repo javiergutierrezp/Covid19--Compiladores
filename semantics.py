@@ -1,4 +1,5 @@
 function_directory = {}
+var_directory = [{}]
 quads = []
 operators_stack = []
 ids_stack = []
@@ -41,11 +42,7 @@ class Function:
   def __repr__(self):
     return "{}, {}, {}".format(self.name, self.type, str(self.vars_table))
 
-def receiveVar(var):
-  print(var)
-
 def setScope(s):
-  print(s)
   if s != '':
     scope[0] = s
   else:
@@ -59,14 +56,7 @@ def insertCteToStack(cte):
 
 def insertIdToStack(identificator):
   if scope[0]:
-    print(function_directory)
-    print(function_directory[scope[0]])
-    print(function_directory[scope[0]].vars_table)
-    print(function_directory[scope[0]].vars_table[identificator])
-    print(function_directory[scope[0]].vars_table[identificator].type)
     type_stack.append(function_directory[scope[0]].vars_table[identificator].type)
-  else:
-    print("probably in principal -> global scope")
   ids_stack.append(identificator)
 
 def insertOperator(operator):
@@ -117,13 +107,13 @@ def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
   quads.append(new_quad)
   if append_temp:
     ids_stack.append("t{}".format(temp_num))
-  print(new_quad)
   if type(temp_num) == int:
     temp_number[0] = temp_num + 1
 
-def getVariable(var):
-  name = var.getChild(2).getText()
-  var_type = var.getChild(0).getText()
+def addVarToVarsTable(type, id):
+  print("Adding var...")
+  print(id, type)
+  name = str(id)
   dimensions = {}
   if name.count('[') == 1:
     dimensions['1'] = int(name[name.find('[') + 1:name.find(']')])
@@ -132,26 +122,15 @@ def getVariable(var):
     dimensions['1'] = int(name[name.find('[') + 1:name.find(']')])
     dimensions['2'] = int(name[name.rfind('[') + 1:name.rfind(']')])
     name = name[:name.find('[')]
+  var_directory[0][name] = Variable(name, type, dimensions)
+  print(var_directory)
 
-  return name, Variable(name, var_type, dimensions)
+def addFunctionToDirectory(id, type):
+  function_directory[id] = Function(id, type, {})
 
-def extendVarDirectory(directory, varList):
-  for i in range(len(varList)):
-    name, variable = getVariable(varList[i])
-    if name not in directory:
-      directory[name] = variable
-    else:
-      print("La variable '{}' ya fue declarada anteriormente.".format(name))
-
-def getVarDirectory(varList):
-  var_directory = {}
-  for i in range(len(varList)):
-    name, variable = getVariable(varList[i])
-    if name not in var_directory:
-      var_directory[name] = variable
-    else:
-      print("La variable '{}' ya fue declarada anteriormente.".format(name))
-  return var_directory
+def includeVarsTableInFunction(id):
+  function_directory[id].vars_table = var_directory[0]
+  var_directory[0] = {}
 
 ################# Cuadruplos #################
 
@@ -164,18 +143,3 @@ def expressionInMegaExpressions(expression):
       ret = True
   megaexpressions.append(expression)
   return ret
-
-# def getRelativeLen(operators_stack):
-#   print("getting relative len")
-#   count = 0
-#   print(operators_stack)
-#   print(len(operators_stack) - 1)
-#   for i in range(len(operators_stack) - 1, -1, -1):
-#     print("inside for...")
-#     if operators_stack[i] != '(':
-#       count += 1
-#     else:
-#       break
-#   return count
-
-

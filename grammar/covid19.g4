@@ -120,13 +120,13 @@ asignacion : identificador {insertIdToStack($identificador.text)} IGUAL {insertO
 identificador : ID (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD)?)?
               ;           
 
-programa : PROGRAMA identificador PUNTOYCOMA varx? (metodo)* funcp
+programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', '')} {includeVarsTableInFunction('principal')} (metodo)* funcp
          ;     
 
 varx : VAR (var (COMA identificador)* PUNTOYCOMA)+
      ;
 
-var : tipo DOSPUNTOS identificador
+var : tipo DOSPUNTOS identificador {addVarToVarsTable($tipo.text, $identificador.text)}
     ;
 
 funcp : PRINCIPAL PARENTESISI PARENTESISD bloque
@@ -135,5 +135,5 @@ funcp : PRINCIPAL PARENTESISI PARENTESISD bloque
 tipo : (INT | FLOAT | STRING | CHAR | DATAFRAME)
      ;         
 
-metodo : FUNCION tipo? ID PARENTESISI (variable=var {receiveVar($variable.text)} (COMA var)*)? PARENTESISD PUNTOYCOMA varx  CORCHETEI (estatuto)* regresa? CORCHETED
+metodo : FUNCION tipo? ID {addFunctionToDirectory($ID.text, $tipo.text)} PARENTESISI (var (COMA var)*)? PARENTESISD PUNTOYCOMA varx {includeVarsTableInFunction($ID.text)} CORCHETEI (estatuto)* regresa? CORCHETED
        ;       
