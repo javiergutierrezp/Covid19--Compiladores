@@ -129,11 +129,11 @@ varx : VAR (var (COMA identificador)* PUNTOYCOMA)+
 var : tipo DOSPUNTOS identificador {addVarToVarsTable($tipo.text, $identificador.text)}
     ;
 
-funcp : PRINCIPAL PARENTESISI PARENTESISD bloque
+funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque
       ;        
 
 tipo : (INT | FLOAT | STRING | CHAR | DATAFRAME)
      ;         
 
-metodo : FUNCION tipo? ID {addFunctionToDirectory($ID.text, $tipo.text)} PARENTESISI (var (COMA var)*)? PARENTESISD PUNTOYCOMA varx {includeVarsTableInFunction($ID.text)} CORCHETEI (estatuto)* regresa? CORCHETED
+metodo : FUNCION tipo? ID {addFunctionToDirectory($ID.text, $tipo.text)} {setScope($ID.text)} PARENTESISI (var (COMA var)*)? PARENTESISD PUNTOYCOMA varx {includeVarsTableInFunction($ID.text)} CORCHETEI (estatuto)* regresa? CORCHETED
        ;       

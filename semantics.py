@@ -1,4 +1,5 @@
 function_directory = {}
+current_scope = ['principal']
 var_directory = [{}]
 quads = []
 operators_stack = []
@@ -8,6 +9,9 @@ jumps_stack = []
 operators = ['+','-','*','/', ';'] #TODO: Implementar
 temp_number = [0]
 scope = [None]
+from grammar.covid19SemanticCube import semanticCube
+
+semantic_cube = semanticCube()
 
 class Quad:
   def __init__(self, operator, operand_left, operand_right, result_id):
@@ -42,21 +46,14 @@ class Function:
   def __repr__(self):
     return "{}, {}, {}".format(self.name, self.type, str(self.vars_table))
 
-def setScope(s):
-  if s != '':
-    scope[0] = s
-  else:
-    scope[0] = None
-
-def insertTypeToStack(type):
-  type_stack.append(type)
+def insertTypeToStack(t):
+  type_stack.append(t)
 
 def insertCteToStack(cte):
   ids_stack.append(cte)
 
 def insertIdToStack(identificator):
-  if scope[0]:
-    type_stack.append(function_directory[scope[0]].vars_table[identificator].type)
+  type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
   ids_stack.append(identificator)
 
 def insertOperator(operator):
@@ -84,7 +81,20 @@ def leaving(origin):
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
       operator = operators_stack.pop()
       right_operand = ids_stack.pop()
+      right_operand_type = type_stack.pop()
       left_operand = ids_stack.pop()
+      left_operand_type = type_stack.pop()
+      print("{} ({}) {} {} ({})".format(
+        left_operand,
+        left_operand_type,
+        operator,
+        right_operand,
+        right_operand_type,
+      ))
+      result_type = semantic_cube.cube[left_operand_type][operator][right_operand_type]
+      if 'Error:' in result_type:
+        raise EnvironmentError(result_type[7:])
+      print(result_type)
       if (origin != 'asignacion'):
         generateQuad(operator, left_operand, right_operand, temp_number[0], True)
       else:
@@ -124,6 +134,9 @@ def addVarToVarsTable(type, id):
     name = name[:name.find('[')]
   var_directory[0][name] = Variable(name, type, dimensions)
   print(var_directory)
+
+def setScope(id):
+  current_scope[0] = id
 
 def addFunctionToDirectory(id, type):
   function_directory[id] = Function(id, type, {})

@@ -1,37 +1,44 @@
-class cuboSemantico():
+class semanticCube():
     def __init__(self):
         self.cube = {
 
             #########################  INT  #############################
 
             "int": {
+                "=" : {
+                    "int": "int",
+                    "float": "Error: No se puede asignar un Float a un Int.",
+                    "char": "Error: No se puede asignar un Char a un Int.",
+                    "string": "Error: No se puede asignar un String a un Int.",
+                    "Dataframe": "Error: No se puede asignar un Dataframe a un Int."
+                },
                 "*" : {
                     "int": "int",
                     "float": "float",
                     "char": "Error: No se puede multiplicar un Int con un Char.",
                     "string": "Error: No se puede multiplicar un Int con un String.",
-                    "Dataframe": "No se puede multiplicar un Int con un Dataframe."
+                    "Dataframe": "Error: No se puede multiplicar un Int con un Dataframe."
                 },
                 "/" : {
                     "int": "float",
                     "float": "float",
                     "char": "Error: No se puede dividir un Int entre un Char.",
                     "string": "Error: No se puede dividir un Int entre un String.",
-                    "Dataframe": "No se puede dividir un Int con un Dataframe."
+                    "Dataframe": "Error: No se puede dividir un Int con un Dataframe."
                 },
                 "+" : {
                     "int": "int",
                     "float": "float",
                     "char": "Error: No se puede hacer una suma de un Int con un Char.",
                     "string": "Error: No se puede hacer una suma de un Int con un String.",
-                    "Dataframe": "No se puede hacer una suma de un Int con un Dataframe."
+                    "Dataframe": "Error: No se puede hacer una suma de un Int con un Dataframe."
                 },
                 "-" : {
                     "int": "int",
                     "float": "float",
                     "char": "Error: No se puede hacer una resta de un Int con un Char.",
                     "string": "Error: No se puede hacer una resta de un Int con un String.",
-                    "Dataframe": "No se puede hacer una resta de un Int con un Dataframe."
+                    "Dataframe": "Error: No se puede hacer una resta de un Int con un Dataframe."
                 },
                 "<" : {
                     "int": "int",
@@ -78,6 +85,13 @@ class cuboSemantico():
             },
             ######################### FLOAT #############################
             "float" : {
+                "=" : {
+                    "int": "Error: No se puede asignar un Int a un Float.",
+                    "float": "float",
+                    "char": "Error: No se puede asignar un Char a un Float.",
+                    "string": "Error: No se puede asignar un String a un Float.",
+                    "Dataframe": "Error: No se puede asignar un Dataframe a un Float."
+                },
                 "*" : {
                     "int": "float",
                     "float": "float",
@@ -118,41 +132,48 @@ class cuboSemantico():
                     "float": "int",
                     "char": "Error: No se puede comparar un Float con un Char.",
                     "string": "Error: No se puede comparar un Float con un String.",
-                    "Dataframe": "No se puede comparar un Float con un Dataframe."
+                    "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
                 },
                 ">=" : {
                     "int": "int",
                     "float": "int",
                     "char": "Error: No se puede comparar un Float con un Char.",
                     "string": "Error: No se puede comparar un Float con un String.",
-                    "Dataframe": "No se puede comparar un Float con un Dataframe."
+                    "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
                 },
                 "<=" : {
                     "int": "int",
                     "float": "int",
                     "char": "Error: No se puede comparar un Float con un Char.",
                     "string": "Error: No se puede comparar un Float con un String.",
-                    "Dataframe": "No se puede comparar un Float con un Dataframe."
+                    "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
                 },
                 "==" : {
                     "int": "int",
                     "float": "int",
                     "char": "Error: No se puede comparar un Float con un Char.",
                     "string": "Error: No se puede comparar un Float con un String.",
-                    "Dataframe": "No se puede comparar un Float con un Dataframe."
+                    "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
                 },
                 "!=" : {
                     "int": "int",
                     "float": "int",
                     "char": "Error: No se puede comparar un Float con un Char.",
                     "string": "Error: No se puede comparar un Float con un String.",
-                    "Dataframe": "No se puede comparar un Float con un Dataframe."
+                    "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
                 }
             },
 
               ######################### STRING #############################
         
             "string": {
+                "=" : {
+                    "int": "Error: No se puede asignar un Int a un String.",
+                    "float": "Error: No se puede asignar un Float a un String.",
+                    "char": "Error: No se puede asignar un Char a un String.",
+                    "string": "string",
+                    "Dataframe": "Error: No se puede asignar un Dataframe a un String."
+                },
                 "*" : {
                     "int": "Error: No se puede multiplicar con un String.",
                     "float": "Error: No se puede multiplicar con un String.",
@@ -227,6 +248,13 @@ class cuboSemantico():
 
                 ######################### CHAR #############################
             "char": {
+                "=" : {
+                    "int": "Error: No se puede asignar un Int a un Char.",
+                    "float": "Error: No se puede asignar un Float a un Char.",
+                    "char": "char",
+                    "string": "Error: No se puede asignar un String a un Char.",
+                    "Dataframe": "Error: No se puede asignar un Dataframe a un Char."
+                },
                 "*" : {
                     "int": "Error: No se puede multiplicar con un Char.",
                     "float": "Error: No se puede multiplicar con un Char.",
@@ -302,7 +330,14 @@ class cuboSemantico():
                 ######################### DATAFRAME #############################
 
             "Dataframe": {
-                "*" : {
+                "=" : {
+                    "int": "Error: No se puede asignar un Int a un Dataframe.",
+                    "float": "Error: No se puede asignar un Float a un Dataframe.",
+                    "char": "Error: No se puede asignar un Char a un Dataframe.",
+                    "string": "Error: No se puede asignar un String a un Dataframe.",
+                    "Dataframe": "Dataframe"
+                },
+                "*" : {     
                     "int": "Error: No se puede multiplicar con un Dataframe.",
                     "float": "Error: No se puede multiplicar con un Dataframe.",
                     "char": "Error: No se puede multiplicar con un Dataframe.",
@@ -320,7 +355,7 @@ class cuboSemantico():
                     "int": "Error: No se puede sumar con un Dataframe.",
                     "float": "Error: No se puede sumar con un Dataframe.",
                     "char": "Error: No se puede sumar con un Dataframe.",
-                    "string": "No se puede sumar con un Dataframe.",
+                    "string": "Error: No se puede sumar con un Dataframe.",
                     "Dataframe": "Error: No se puede sumar con un Dataframe."
                 },
                 "-" : {
