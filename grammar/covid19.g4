@@ -67,13 +67,13 @@ WS: [ \t\r\n\u000C]+ -> skip;
 nocondicional : DESDE identificador IGUAL expresion HASTA expresion HACER bloque
               ;
 
-condicional : MIENTRAS PARENTESISI megaexpresion PARENTESISD HAZ bloque
+condicional : MIENTRAS {addMigajitaDePan()} PARENTESISI megaexpresion {addGotoF()} PARENTESISD HAZ bloque {addGotoA()} {addGotoEnd('mientras')}
             ;  
 
 bloque : CORCHETEI (estatuto)+ CORCHETED
        ;      
 
-decision : SI PARENTESISI megaexpresion PARENTESISD ENTONCES bloque (SINO bloque)?
+decision : SI PARENTESISI megaexpresion {addGotoF()} PARENTESISD ENTONCES bloque {addGotoA()} (SINO  bloque)? {addGotoEnd('si')}
          ;     
 
 cargadatos : CARGAARCHIVO PARENTESISI ID COMA (identificador | cte) COMA (identificador | cte) COMA (identificador | cte) PARENTESISD

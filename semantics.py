@@ -3,6 +3,7 @@ current_scope = ['principal']
 var_directory = [{}]
 quads = []
 operators_stack = []
+jump_stack = []
 ids_stack = []
 type_stack = []
 jumps_stack = []
@@ -21,7 +22,7 @@ class Quad:
     self.result_id = result_id
 
   def __repr__(self):
-    return "{}, {}, {}, {}".format(
+    return "\n[{}, {}, {}, {}]".format(
       self.operator,
       self.operand_left,
       self.operand_right,
@@ -45,6 +46,36 @@ class Function:
 
   def __repr__(self):
     return "{}, {}, {}".format(self.name, self.type, str(self.vars_table))
+
+########## Cuadruplos estatutos no lineales ##########
+
+def addGotoF():
+  print(quads)
+  exp_type = type_stack.pop()
+  if exp_type != 'int':
+    raise EnvironmentError("Type missmatch")
+  operand = ids_stack.pop()
+  generateQuad('GOTOF', operand, -1, None, False)
+  jump_stack.append(len(quads) - 1)
+
+def addGotoA():
+  last_goto_index = jump_stack.pop()
+  generateQuad('GOTO', -1, -1, None, False)
+  jump_stack.append(len(quads) - 1)    
+  quads[last_goto_index].result_id = len(quads)
+
+def addMigajitaDePan():
+  jump_stack.append(len(quads))
+
+def addGotoEnd(origin):
+  print(jump_stack)
+  last_goto_index = jump_stack.pop()
+  if origin == 'mientras':
+    quads[last_goto_index].result_id = jump_stack.pop()
+  elif origin == 'si':
+    quads[last_goto_index].result_id = len(quads)
+
+########## Cuadruplos estatutos lineales ##########
 
 def insertTypeToStack(t):
   type_stack.append(t)
@@ -94,9 +125,9 @@ def leaving(origin):
       result_type = semantic_cube.cube[left_operand_type][operator][right_operand_type]
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
-      print(result_type)
       if (origin != 'asignacion'):
         generateQuad(operator, left_operand, right_operand, temp_number[0], True)
+        insertTypeToStack(result_type)
       else:
         generateQuad(operator, right_operand, None, left_operand, False)
 
@@ -110,19 +141,21 @@ def write(idOrCte):
   generateQuad('escribe', idOrCte, -1, temp_number[0], False)
 
 def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
-  if type(temp_num) == int:
-    new_quad = Quad(operator, left_operand, right_operand, "t{}".format(temp_num))
-  else: 
+  if 'GOTO' in operator:
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
-  quads.append(new_quad)
-  if append_temp:
-    ids_stack.append("t{}".format(temp_num))
-  if type(temp_num) == int:
-    temp_number[0] = temp_num + 1
+    quads.append(new_quad)
+  else:
+    if type(temp_num) == int: # No asignacion
+      new_quad = Quad(operator, left_operand, right_operand, "t{}".format(temp_num))
+    else: # Asignacion
+      new_quad = Quad(operator, left_operand, right_operand, temp_num)
+    quads.append(new_quad)
+    if append_temp:
+      ids_stack.append("t{}".format(temp_num))
+    if type(temp_num) == int:
+      temp_number[0] = temp_num + 1
 
 def addVarToVarsTable(type, id):
-  print("Adding var...")
-  print(id, type)
   name = str(id)
   dimensions = {}
   if name.count('[') == 1:
@@ -144,15 +177,3 @@ def addFunctionToDirectory(id, type):
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
   var_directory[0] = {}
-
-################# Cuadruplos #################
-
-megaexpressions = []
-
-def expressionInMegaExpressions(expression):
-  ret = False
-  for i in range(len(megaexpressions)):
-    if expression in megaexpressions[i]:
-      ret = True
-  megaexpressions.append(expression)
-  return ret

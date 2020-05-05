@@ -1,15 +1,10 @@
 Programa Covid19;
 var
 int : j;
-
-funcion int fact (int : j, char : i);
-var int : k;
-string : VarCodiv[100];
-{
-    i = j + 2;
-}
+int : a;
+int : b;
 
 principal () 
 {
-   j = a | b;
+   mientras (a>b) haz { escribe("hellow"); }
 }
