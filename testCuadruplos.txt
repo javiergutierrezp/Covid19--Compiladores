@@ -1,10 +1,10 @@
 Programa Covid19;
 var
-int : j;
+int : i;
 int : a;
 int : b;
 
 principal () 
 {
-   mientras (a>b) haz { escribe("hellow"); }
+   desde i = 6 hasta 12 hacer { escribe("dimelou"); escribe("dimelou"); } 
 }

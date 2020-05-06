@@ -50,7 +50,7 @@ class Function:
 ########## Cuadruplos estatutos no lineales ##########
 
 def addGotoF():
-  print(quads)
+  # print(quads)
   exp_type = type_stack.pop()
   if exp_type != 'int':
     raise EnvironmentError("Type missmatch")
@@ -68,12 +68,31 @@ def addMigajitaDePan():
   jump_stack.append(len(quads))
 
 def addGotoEnd(origin):
-  print(jump_stack)
+  # print(jump_stack)
   last_goto_index = jump_stack.pop()
-  if origin == 'mientras':
+  if origin == 'while':
     quads[last_goto_index].result_id = jump_stack.pop()
   elif origin == 'si':
     quads[last_goto_index].result_id = len(quads)
+  elif origin == 'for':
+    # Decir que al finalizar el bloque for, re-evaluar la condición
+    evaluation_index = jump_stack.pop()
+    iterator_index = evaluation_index - 1
+    generateQuad('+', quads[iterator_index].result_id, 1, quads[iterator_index].result_id, False)
+    generateQuad('GOTO', -1, -1, evaluation_index, False)
+    # Decir que cuando N == M nos salimos del for
+    quads[last_goto_index].result_id = len(quads)
+
+
+def forEvaluation():
+  last_quad = quads[len(quads) - 1]
+  type_stack.append('int')
+  operators_stack.append('==')
+  ids_stack.append(last_quad.result_id)
+  leaving('comparacion')
+  jump_stack.append(len(quads) - 1)
+  generateQuad('GOTOV', ids_stack.pop(), -1, None, False)
+  jump_stack.append(len(quads) - 1)
 
 ########## Cuadruplos estatutos lineales ##########
 
@@ -84,8 +103,12 @@ def insertCteToStack(cte):
   ids_stack.append(cte)
 
 def insertIdToStack(identificator):
-  type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
-  ids_stack.append(identificator)
+  try:
+    type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
+    ids_stack.append(identificator)
+  except:
+    print("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
+    quit()
 
 def insertOperator(operator):
   operators_stack.append(operator)
@@ -166,7 +189,7 @@ def addVarToVarsTable(type, id):
     dimensions['2'] = int(name[name.rfind('[') + 1:name.rfind(']')])
     name = name[:name.find('[')]
   var_directory[0][name] = Variable(name, type, dimensions)
-  print(var_directory)
+  # print(var_directory)
 
 def setScope(id):
   current_scope[0] = id

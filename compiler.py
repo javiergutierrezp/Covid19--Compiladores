@@ -15,7 +15,7 @@ def main(argv):
     walker = ParseTreeWalker()
     tree = parser.programa()
     walker.walk(printer, tree)
-    print(quads)
+    # print(quads)
 
     if parser.getNumberOfSyntaxErrors() == 0:
         print("PROGRAMA CORRECTO")

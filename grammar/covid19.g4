@@ -64,10 +64,10 @@ COMENTARIO: '/' .? '*/' -> skip;
 LINEACOMENTADA: '//' ~[\r\n]* -> skip;
 WS: [ \t\r\n\u000C]+ -> skip;
 
-nocondicional : DESDE identificador IGUAL expresion HASTA expresion HACER bloque
+nocondicional : DESDE identificador {insertIdToStack($identificador.text)} IGUAL {insertOperator($IGUAL.text)} expresion {leaving('asignacion')} HASTA expresion {forEvaluation()} HACER bloque {addGotoEnd('for')}
               ;
 
-condicional : MIENTRAS {addMigajitaDePan()} PARENTESISI megaexpresion {addGotoF()} PARENTESISD HAZ bloque {addGotoA()} {addGotoEnd('mientras')}
+condicional : MIENTRAS {addMigajitaDePan()} PARENTESISI megaexpresion {addGotoF()} PARENTESISD HAZ bloque {addGotoA()} {addGotoEnd('while')}
             ;  
 
 bloque : CORCHETEI (estatuto)+ CORCHETED
