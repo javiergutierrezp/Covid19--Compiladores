@@ -129,7 +129,7 @@ varx : VAR (var (COMA identificador)* PUNTOYCOMA)+
 var : tipo DOSPUNTOS identificador {addVarToVarsTable($tipo.text, $identificador.text)}
     ;
 
-funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque {removeVarsTableInFunction($PRINCIPAL.text)}
+funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque
       ;        
 
 tipo : (INT | FLOAT | STRING | CHAR | DATAFRAME)

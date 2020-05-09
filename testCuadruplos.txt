@@ -1,7 +1,7 @@
 Programa Covid19;
 var
 int : c;
-int : a;
+char : a[10][21];
 int : b;
 char : z;
 
@@ -12,6 +12,5 @@ funcion emilio (int : a, char : b, int : c[10][20]);
 
 principal () 
 {
-   c = a;
-   eilio(1, a, c)
+   emilio(1, a, c)
 }

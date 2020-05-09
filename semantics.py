@@ -63,20 +63,29 @@ def addVarToFunctionParams(var, function_name):
   print(function_directory)
   var_id = var[var.find(':')+1:]
   var_type = var[:var.find(':')]
-  dimensions, _ = getDimensions(var_id)
-  function_directory[function_name].params.append(Variable(None,var_type, dimensions))
+  dimensions, var_id = getDimensions(var_id)
+  function_directory[function_name].params.append(Variable(var_id, var_type, dimensions))
 
 def receivedFunctionParameters(function_name):
   print("receivedFunctionParameters")
   print(function_directory[function_name])
   print(type_stack)
-  j = len(type_stack)
+  type_stack_len = len(type_stack)
+  ids_stack_len = len(ids_stack)
   for i in range(0, len(function_directory[function_name].params)):
-      definition_type = function_directory[function_name].params[
+      definition_param = function_directory[function_name].params[
         len(function_directory[function_name].params) - 1 - i
-      ].type
-      given_type = type_stack[j - 1 - i]
-      if definition_type != given_type:
+      ]
+      given_param_type = type_stack[type_stack_len - 1 - i]
+      # print(function_directory['principal'])
+      # print(function_directory['principal'].vars_table)
+      # print(ids_stack)
+      # print(ids_stack[type_stack_len - 1 - i])
+      # print(function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]])
+      
+      given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
+      print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
+      if definition_param.type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 
           parameter types of function '{}' - the argument #{} 
@@ -84,10 +93,12 @@ def receivedFunctionParameters(function_name):
         """.format(
           function_name,
           i + 1,
-          definition_type,
-          given_type
+          definition_param.type,
+          given_param_type
         ))
-  
+
+def initializeVarsTable():
+  print("test")
 
 
 
