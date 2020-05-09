@@ -1,4 +1,5 @@
 function_directory = {}
+params_directory = {}
 current_scope = ['principal']
 var_directory = [{}]
 quads = []
@@ -22,7 +23,7 @@ class Quad:
     self.result_id = result_id
 
   def __repr__(self):
-    return "\n[{}, {}, {}, {}]".format(
+    return "\nQuad({}, {}, {}, {})".format(
       self.operator,
       self.operand_left,
       self.operand_right,
@@ -36,16 +37,36 @@ class Variable:
     self.dimensions = dimensions
 
   def __repr__(self):
-    return "{}, {}, {}".format(self.name, self.type, self.dimensions)
+    return "Variable({}, {}, {})".format(self.name, self.type, self.dimensions)
 
 class Function:
-  def __init__(self, name, type, vars_table):
+  def __init__(self, name, var_type, params, vars_table):
     self.name = name
-    self.type = type
+    self.type = var_type
+    self.params = params
     self.vars_table = vars_table
 
   def __repr__(self):
-    return "{}, {}, {}".format(self.name, self.type, str(self.vars_table))
+    return "Function({}, {}, {}, {})".format(self.name, self.type, str(self.params), str(self.vars_table))
+
+########## Cuadruplos funciones ##########
+
+def addVarToFunctionParams(var, function_name):
+  print(function_directory)
+  var_id = var[var.find(':')+1:]
+  var_type = var[:var.find(':')]
+  dimensions, _ = getDimensions(var_id)
+  function_directory[function_name].params.append(Variable(None,var_type, dimensions))
+
+def receivedFunctionParameters():
+  print("receivedFunctionParameters")
+  # print(quads)
+  # print(jump_stack)
+  # print(ids_stack)
+  # print(type_stack)
+  # print(function_directory)
+
+
 
 ########## Cuadruplos estatutos no lineales ##########
 
@@ -156,12 +177,14 @@ def leaving(origin):
 
 def readId(identificator):
   generateQuad('lee', identificator, -1, temp_number[0], False)
+  type_stack.pop()
 
 def writeExpression():
   write("t{}".format(temp_number[0] - 1))
 
 def write(idOrCte):
   generateQuad('escribe', idOrCte, -1, temp_number[0], False)
+  type_stack.pop()
 
 def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
   if 'GOTO' in operator:
@@ -178,25 +201,34 @@ def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
     if type(temp_num) == int:
       temp_number[0] = temp_num + 1
 
-def addVarToVarsTable(type, id):
-  name = str(id)
+def getDimensions(var_id):
+  id_string = str(var_id)
   dimensions = {}
-  if name.count('[') == 1:
-    dimensions['1'] = int(name[name.find('[') + 1:name.find(']')])
-    name = name[:name.find('[')]
-  elif name.count('[') == 2:
-    dimensions['1'] = int(name[name.find('[') + 1:name.find(']')])
-    dimensions['2'] = int(name[name.rfind('[') + 1:name.rfind(']')])
-    name = name[:name.find('[')]
-  var_directory[0][name] = Variable(name, type, dimensions)
-  # print(var_directory)
+  if id_string.count('[') == 1:
+    dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
+    id_string = id_string[:id_string.find('[')]
+  elif id_string.count('[') == 2:
+    dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
+    dimensions['2'] = int(id_string[id_string.rfind('[') + 1:id_string.rfind(']')])
+    id_string = id_string[:id_string.find('[')]
+  return dimensions, id_string
+
+def addVarToVarsTable(type, var_id):
+  dimensions, id_string = getDimensions(var_id)
+  print("addVarToVarsTable")
+  print(dimensions, id_string)
+  var_directory[0][id_string] = Variable(id_string, type, dimensions)
+
 
 def setScope(id):
   current_scope[0] = id
 
 def addFunctionToDirectory(id, type):
-  function_directory[id] = Function(id, type, {})
+  function_directory[id] = Function(id, type, [], {})
 
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
   var_directory[0] = {}
+
+def removeVarsTableInFunction(id):
+  function_directory[id].vars_table = {}

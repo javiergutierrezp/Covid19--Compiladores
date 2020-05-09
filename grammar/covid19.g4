@@ -108,7 +108,7 @@ factor : identificador {insertIdToStack($identificador.text)} | cte {insertCteTo
 estatuto : (llamadametodo PUNTOYCOMA? | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
          ;
 
-llamadametodo : ID PARENTESISI megaexpresion (COMA megaexpresion)* PARENTESISD
+llamadametodo : ID PARENTESISI (megaexpresion (COMA megaexpresion)*)? {receivedFunctionParameters()} PARENTESISD
               ;
 
 regresa : REGRESA PARENTESISI megaexpresion PARENTESISD
@@ -120,7 +120,7 @@ asignacion : identificador {insertIdToStack($identificador.text)} IGUAL {insertO
 identificador : ID (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD)?)?
               ;           
 
-programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', '')} {includeVarsTableInFunction('principal')} (metodo)* funcp
+programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', None)} {includeVarsTableInFunction('principal')} (metodo)* funcp
          ;     
 
 varx : VAR (var (COMA identificador)* PUNTOYCOMA)+
@@ -129,11 +129,11 @@ varx : VAR (var (COMA identificador)* PUNTOYCOMA)+
 var : tipo DOSPUNTOS identificador {addVarToVarsTable($tipo.text, $identificador.text)}
     ;
 
-funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque
+funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque {removeVarsTableInFunction($PRINCIPAL.text)}
       ;        
 
 tipo : (INT | FLOAT | STRING | CHAR | DATAFRAME)
      ;         
 
-metodo : FUNCION tipo? ID {addFunctionToDirectory($ID.text, $tipo.text)} {setScope($ID.text)} PARENTESISI (var (COMA var)*)? PARENTESISD PUNTOYCOMA varx {includeVarsTableInFunction($ID.text)} CORCHETEI (estatuto)* regresa? CORCHETED
+metodo : FUNCION tipo? ID {addFunctionToDirectory($ID.text, $tipo.text)} {setScope($ID.text)} PARENTESISI (var {addVarToFunctionParams($var.text, $ID.text)} (COMA var {addVarToFunctionParams($var.text, $ID.text)})*)? PARENTESISD PUNTOYCOMA  (varx)? {includeVarsTableInFunction($ID.text)} CORCHETEI (estatuto)* regresa? CORCHETED {removeVarsTableInFunction($ID.text)}
        ;       
