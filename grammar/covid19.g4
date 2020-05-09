@@ -108,7 +108,7 @@ factor : identificador {insertIdToStack($identificador.text)} | cte {insertCteTo
 estatuto : (llamadametodo PUNTOYCOMA? | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
          ;
 
-llamadametodo : ID PARENTESISI (megaexpresion (COMA megaexpresion)*)? {receivedFunctionParameters()} PARENTESISD
+llamadametodo : ID {validateFunctionExistance($ID.text)} PARENTESISI (megaexpresion (COMA megaexpresion)*)? {receivedFunctionParameters($ID.text)} PARENTESISD
               ;
 
 regresa : REGRESA PARENTESISI megaexpresion PARENTESISD

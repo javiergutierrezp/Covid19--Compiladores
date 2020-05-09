@@ -5,7 +5,7 @@ int : a;
 int : b;
 char : z;
 
-funcion emilio (int : a, int : b, int : c[10][20]);
+funcion emilio (int : a, char : b, int : c[10][20]);
 {
    escribe("hello");
 }
@@ -13,5 +13,5 @@ funcion emilio (int : a, int : b, int : c[10][20]);
 principal () 
 {
    c = a;
-   emilio(1, a + b, c)
+   eilio(1, a, c)
 }

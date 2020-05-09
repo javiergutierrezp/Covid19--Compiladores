@@ -51,6 +51,14 @@ class Function:
 
 ########## Cuadruplos funciones ##########
 
+def validateFunctionExistance(function_name):
+  if function_name not in function_directory:
+    raise EnvironmentError("""
+          The function '{}' has not been declared.
+        """.format(
+          function_name,
+        ))
+
 def addVarToFunctionParams(var, function_name):
   print(function_directory)
   var_id = var[var.find(':')+1:]
@@ -58,13 +66,28 @@ def addVarToFunctionParams(var, function_name):
   dimensions, _ = getDimensions(var_id)
   function_directory[function_name].params.append(Variable(None,var_type, dimensions))
 
-def receivedFunctionParameters():
+def receivedFunctionParameters(function_name):
   print("receivedFunctionParameters")
-  # print(quads)
-  # print(jump_stack)
-  # print(ids_stack)
-  # print(type_stack)
-  # print(function_directory)
+  print(function_directory[function_name])
+  print(type_stack)
+  j = len(type_stack)
+  for i in range(0, len(function_directory[function_name].params)):
+      definition_type = function_directory[function_name].params[
+        len(function_directory[function_name].params) - 1 - i
+      ].type
+      given_type = type_stack[j - 1 - i]
+      if definition_type != given_type:
+        raise EnvironmentError("""
+          Given argument does not match the 
+          parameter types of function '{}' - the argument #{} 
+          was expecting type '{}' but received type '{}'
+        """.format(
+          function_name,
+          i + 1,
+          definition_type,
+          given_type
+        ))
+  
 
 
 
