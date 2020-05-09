@@ -85,6 +85,19 @@ def receivedFunctionParameters(function_name):
       
       given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
       print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
+
+      if definition_param.dimensions != given_param_dimensions:
+        raise EnvironmentError("""
+          Given argument does not match the 
+          parameter dimension of function '{}' - the argument #{} 
+          was expecting a variable with '{}' dimension but received one with '{}' dimesions.
+        """.format(
+          function_name,
+          i + 1,
+          definition_param.dimesions,
+          given_param_dimensions
+        ))
+
       if definition_param.type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 
