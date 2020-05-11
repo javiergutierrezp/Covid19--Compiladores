@@ -1,3 +1,9 @@
+INT_SIZE = 2
+FLOAT_SIZE = 3
+CHAR_SIZE = 1
+STRING_SIZE = 2
+DATAFRAME_SIZE = 4
+
 function_directory = {}
 params_directory = {}
 current_scope = ['principal']
@@ -10,6 +16,7 @@ type_stack = []
 jumps_stack = []
 operators = ['+','-','*','/', ';'] #TODO: Implementar
 temp_number = [0]
+received_param_counter = [0]
 scope = [None]
 from grammar.covid19SemanticCube import semanticCube
 
@@ -40,14 +47,15 @@ class Variable:
     return "Variable({}, {}, {})".format(self.name, self.type, self.dimensions)
 
 class Function:
-  def __init__(self, name, var_type, params, vars_table):
+  def __init__(self, name, var_type, params, size, vars_table):
     self.name = name
     self.type = var_type
     self.params = params
+    self.size = size
     self.vars_table = vars_table
 
   def __repr__(self):
-    return "Function({}, {}, {}, {})".format(self.name, self.type, str(self.params), str(self.vars_table))
+    return "Function({}, {}, {}, {}, {})".format(self.name, self.type, str(self.params), self.size, str(self.vars_table))
 
 ########## Cuadruplos funciones ##########
 
@@ -66,37 +74,45 @@ def addVarToFunctionParams(var, function_name):
   dimensions, var_id = getDimensions(var_id)
   function_directory[function_name].params.append(Variable(var_id, var_type, dimensions))
 
+def incrementReceivedParamCounter():
+  received_param_counter[0] += 1
+
 def receivedFunctionParameters(function_name):
   print("receivedFunctionParameters")
   print(function_directory[function_name])
   print(type_stack)
   type_stack_len = len(type_stack)
   ids_stack_len = len(ids_stack)
+  if len(function_directory[function_name].params) != received_param_counter[0]:
+    raise EnvironmentError("""
+      The amount of params received when trying to call
+      function '{}' is incorrect. Was expecting {} and received 
+      {}.
+    """.format(
+      function_name,
+      len(function_directory[function_name].params),
+      received_param_counter[0]
+    ))
   for i in range(0, len(function_directory[function_name].params)):
       definition_param = function_directory[function_name].params[
         len(function_directory[function_name].params) - 1 - i
       ]
       given_param_type = type_stack[type_stack_len - 1 - i]
-      # print(function_directory['principal'])
-      # print(function_directory['principal'].vars_table)
-      # print(ids_stack)
-      # print(ids_stack[type_stack_len - 1 - i])
-      # print(function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]])
-      
-      given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
-      print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
 
-      if definition_param.dimensions != given_param_dimensions:
-        raise EnvironmentError("""
-          Given argument does not match the 
-          parameter dimension of function '{}' - the argument #{} 
-          was expecting a variable with '{}' dimension but received one with '{}' dimesions.
-        """.format(
-          function_name,
-          i + 1,
-          definition_param.dimesions,
-          given_param_dimensions
-        ))
+      if definition_param.dimensions != {}:
+        given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
+        print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
+
+        if definition_param.dimensions != given_param_dimensions:
+          raise EnvironmentError("""
+            Given argument does not match the 
+            parameter dimension of function '{}' - the argument #{} 
+            does not have the same dimensions as the parameter declared
+            in the function definition
+          """.format(
+            function_name,
+            i + 1,
+          ))
 
       if definition_param.type != given_param_type:
         raise EnvironmentError("""
@@ -109,6 +125,7 @@ def receivedFunctionParameters(function_name):
           definition_param.type,
           given_param_type
         ))
+  received_param_counter[0] = 0
 
 def initializeVarsTable():
   print("test")
@@ -271,11 +288,63 @@ def setScope(id):
   current_scope[0] = id
 
 def addFunctionToDirectory(id, type):
-  function_directory[id] = Function(id, type, [], {})
+  function_directory[id] = Function(id, type, [], None, {})
 
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
   var_directory[0] = {}
 
+def getCellCount(dimensions):
+  cells = 1
+  for dimension in dimensions:
+    cells *= dimensions[dimension]
+  return cells
+
+def getVarCount(dimensions):
+  if dimensions == {}:
+    return 1
+  else:
+    return getCellCount(dimensions)
+
+def getSizeFromVarsTable(vars_table):
+  int_counter = 0
+  float_counter = 0
+  char_counter = 0
+  string_counter = 0
+  dataframe_counter = 0
+
+  for key in vars_table:
+    var_type = vars_table[key].type
+    var_dimensions = vars_table[key].dimensions
+    if var_type == 'int':
+      int_counter += getVarCount(var_dimensions)
+    elif var_type == 'float':
+      float_counter += getVarCount(var_dimensions)
+    elif var_type == 'char':
+      char_counter += getVarCount(var_dimensions)
+    elif var_type == 'string':
+      string_counter += getVarCount(var_dimensions)
+    elif var_type == 'Dataframe':
+      dataframe_counter += 1
+
+    print("int_counter: {}".format(int_counter))
+    print("float_counter: {}".format(float_counter))
+    print("char_counter: {}".format(char_counter))
+    print("string_counter: {}".format(string_counter))
+    print("dataframe_counter: {}".format(dataframe_counter))
+  
+  return (
+    int_counter * INT_SIZE + 
+    float_counter * FLOAT_SIZE +
+    char_counter * CHAR_SIZE +
+    string_counter * STRING_SIZE +
+    dataframe_counter * DATAFRAME_SIZE
+  )
+
 def removeVarsTableInFunction(id):
+  print("------")
+  print(function_directory[id].vars_table)
+  size = getSizeFromVarsTable(function_directory[id].vars_table)
+  print(size)
+  function_directory[id].size = size
   function_directory[id].vars_table = {}

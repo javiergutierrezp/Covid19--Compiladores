@@ -1,16 +1,18 @@
 Programa Covid19;
 var
 int : c;
-char : a[10][21];
-int : b;
-char : z;
+int : a[10][20];
+int : g;
+char : z[4][2];
 
-funcion emilio (int : a, char : b, int : c[10][20]);
+funcion emilio (int : h, char : b[4][2], int : c[10][20]);
+var
+Dataframe : wazabe;
 {
    escribe("hello");
 }
 
 principal () 
 {
-   emilio(1, a, c)
+   emilio(1, z, a)
 }
