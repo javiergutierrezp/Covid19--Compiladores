@@ -189,7 +189,11 @@ def insertCteToStack(cte):
 
 def insertIdToStack(identificator):
   try:
-    type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
+    print(function_directory)
+    if identificator not in function_directory[current_scope[0]].vars_table:
+      type_stack.append(function_directory['principal'].vars_table[identificator].type)
+    else:
+      type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
     ids_stack.append(identificator)
   except:
     print("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
@@ -277,11 +281,13 @@ def getDimensions(var_id):
     id_string = id_string[:id_string.find('[')]
   return dimensions, id_string
 
-def addVarToVarsTable(type, var_id):
+def addVarToVarsTable(var_type, var_id, last_var):
+  if not last_var:
+    final_type = var_type
+  else:
+    final_type = last_var[:last_var.find(':')]
   dimensions, id_string = getDimensions(var_id)
-  print("addVarToVarsTable")
-  print(dimensions, id_string)
-  var_directory[0][id_string] = Variable(id_string, type, dimensions)
+  var_directory[0][id_string] = Variable(id_string, final_type, dimensions)
 
 
 def setScope(id):

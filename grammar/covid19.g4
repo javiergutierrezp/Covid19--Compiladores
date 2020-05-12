@@ -123,10 +123,10 @@ identificador : ID (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD (C
 programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', None)} {includeVarsTableInFunction('principal')} (metodo)* funcp
          ;     
 
-varx : VAR (var (COMA identificador)* PUNTOYCOMA)+
+varx : VAR (var (COMA identificador {addVarToVarsTable(None, $identificador.text, $var.text)})* PUNTOYCOMA)+
      ;
 
-var : tipo DOSPUNTOS identificador {addVarToVarsTable($tipo.text, $identificador.text)}
+var : tipo DOSPUNTOS identificador {addVarToVarsTable($tipo.text, $identificador.text, None)}
     ;
 
 funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque
