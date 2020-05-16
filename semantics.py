@@ -16,6 +16,7 @@ type_stack = []
 jumps_stack = []
 operators = ['+','-','*','/', ';'] #TODO: Implementar
 temp_number = [0]
+temp_size = [0]
 received_param_counter = [0]
 scope = [None]
 from grammar.covid19SemanticCube import semanticCube
@@ -47,17 +48,33 @@ class Variable:
     return "Variable({}, {}, {})".format(self.name, self.type, self.dimensions)
 
 class Function:
-  def __init__(self, name, var_type, params, size, vars_table):
+  def __init__(self, name, var_type, params, first_quad, size, vars_table):
     self.name = name
     self.type = var_type
     self.params = params
+    self.first_quad = first_quad
     self.size = size
     self.vars_table = vars_table
 
   def __repr__(self):
-    return "Function({}, {}, {}, {}, {})".format(self.name, self.type, str(self.params), self.size, str(self.vars_table))
+    return "Function({}, {}, {}, {}, {}, {})".format(self.name, self.type, str(self.params), self.first_quad, self.size, str(self.vars_table))
+
+########## Utils ##########
+
+def test():
+  print("***************")
+  print(ids_stack)
+  print(type_stack)
+  print("***************")
+
+def addMigajitaDePan():
+  jump_stack.append(len(quads))
 
 ########## Cuadruplos funciones ##########
+
+def rememberBeginingOfFunction(function_name):
+  temp_size[0] = 0
+  function_directory[function_name].first_quad = len(quads);
 
 def validateFunctionExistance(function_name):
   if function_name not in function_directory:
@@ -68,7 +85,7 @@ def validateFunctionExistance(function_name):
         ))
 
 def addVarToFunctionParams(var, function_name):
-  print(function_directory)
+  # print(function_directory)
   var_id = var[var.find(':')+1:]
   var_type = var[:var.find(':')]
   dimensions, var_id = getDimensions(var_id)
@@ -78,9 +95,10 @@ def incrementReceivedParamCounter():
   received_param_counter[0] += 1
 
 def receivedFunctionParameters(function_name):
-  print("receivedFunctionParameters")
-  print(function_directory[function_name])
-  print(type_stack)
+  # print("receivedFunctionParameters")
+  # print(function_directory[function_name])
+  # print(type_stack)
+  temp_vars_table = {}
   type_stack_len = len(type_stack)
   ids_stack_len = len(ids_stack)
   if len(function_directory[function_name].params) != received_param_counter[0]:
@@ -99,6 +117,7 @@ def receivedFunctionParameters(function_name):
       ]
       given_param_type = type_stack[type_stack_len - 1 - i]
 
+      
       if definition_param.dimensions != {}:
         given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
         print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
@@ -125,10 +144,19 @@ def receivedFunctionParameters(function_name):
           definition_param.type,
           given_param_type
         ))
+      
+      # temp_vars_table[]
   received_param_counter[0] = 0
+  # initializeVarsTable();
+
+def insertERASize(function_name):
+  generateAndAppendQuad("ERA", function_name, None, None, False, None)
 
 def initializeVarsTable():
   print("test")
+
+def insertGOSUB(function_name):
+  generateAndAppendQuad("GOSUB", function_name, None, None, False, None)  
 
 
 
@@ -140,17 +168,17 @@ def addGotoF():
   if exp_type != 'int':
     raise EnvironmentError("Type missmatch")
   operand = ids_stack.pop()
-  generateQuad('GOTOF', operand, -1, None, False)
+  generateAndAppendQuad('GOTOF', operand, -1, None, False, None)
   jump_stack.append(len(quads) - 1)
 
 def addGotoA():
   last_goto_index = jump_stack.pop()
-  generateQuad('GOTO', -1, -1, None, False)
+  generateAndAppendQuad('GOTO', -1, -1, None, False, None)
   jump_stack.append(len(quads) - 1)    
   quads[last_goto_index].result_id = len(quads)
 
-def addMigajitaDePan():
-  jump_stack.append(len(quads))
+def addGotoPrincipal():
+  generateAndAppendQuad('GOTO', 'principal', None, None, False, None)
 
 def addGotoEnd(origin):
   # print(jump_stack)
@@ -163,8 +191,8 @@ def addGotoEnd(origin):
     # Decir que al finalizar el bloque for, re-evaluar la condición
     evaluation_index = jump_stack.pop()
     iterator_index = evaluation_index - 1
-    generateQuad('+', quads[iterator_index].result_id, 1, quads[iterator_index].result_id, False)
-    generateQuad('GOTO', -1, -1, evaluation_index, False)
+    generateAndAppendQuad('+', quads[iterator_index].result_id, 1, quads[iterator_index].result_id, False, "int")
+    generateAndAppendQuad('GOTO', -1, -1, evaluation_index, False, None)
     # Decir que cuando N == M nos salimos del for
     quads[last_goto_index].result_id = len(quads)
 
@@ -176,7 +204,7 @@ def forEvaluation():
   ids_stack.append(last_quad.result_id)
   leaving('comparacion')
   jump_stack.append(len(quads) - 1)
-  generateQuad('GOTOV', ids_stack.pop(), -1, None, False)
+  generateAndAppendQuad('GOTOV', ids_stack.pop(), -1, None, False, None)
   jump_stack.append(len(quads) - 1)
 
 ########## Cuadruplos estatutos lineales ##########
@@ -189,7 +217,7 @@ def insertCteToStack(cte):
 
 def insertIdToStack(identificator):
   try:
-    print(function_directory)
+    # print(function_directory)
     if identificator not in function_directory[current_scope[0]].vars_table:
       type_stack.append(function_directory['principal'].vars_table[identificator].type)
     else:
@@ -238,23 +266,35 @@ def leaving(origin):
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
-        generateQuad(operator, left_operand, right_operand, temp_number[0], True)
+        generateAndAppendQuad(operator, left_operand, right_operand, temp_number[0], True, result_type)
         insertTypeToStack(result_type)
       else:
-        generateQuad(operator, right_operand, None, left_operand, False)
+        generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
 def readId(identificator):
-  generateQuad('lee', identificator, -1, temp_number[0], False)
+  generateAndAppendQuad('lee', identificator, -1, temp_number[0], False, "string")
   type_stack.pop()
 
 def writeExpression():
   write("t{}".format(temp_number[0] - 1))
 
 def write(idOrCte):
-  generateQuad('escribe', idOrCte, -1, temp_number[0], False)
+  generateAndAppendQuad('escribe', idOrCte, -1, temp_number[0], False, "string")
   type_stack.pop()
 
-def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
+def getSizeOfType(var_type):
+  if(var_type == "string"):
+    return STRING_SIZE
+  elif(var_type == "int"):
+    return INT_SIZE
+  elif(var_type == "float"):
+      return FLOAT_SIZE
+  elif(var_type == "char"):
+      return CHAR_SIZE
+  elif(var_type == "Dataframe"):
+      return DATAFRAME_SIZE
+
+def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type):
   if 'GOTO' in operator:
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
@@ -268,6 +308,8 @@ def generateQuad(operator, left_operand, right_operand, temp_num, append_temp):
       ids_stack.append("t{}".format(temp_num))
     if type(temp_num) == int:
       temp_number[0] = temp_num + 1
+      temp_size[0] += getSizeOfType(result_type)
+
 
 def getDimensions(var_id):
   id_string = str(var_id)
@@ -294,7 +336,7 @@ def setScope(id):
   current_scope[0] = id
 
 def addFunctionToDirectory(id, type):
-  function_directory[id] = Function(id, type, [], None, {})
+  function_directory[id] = Function(id, type, [], None, None, {})
 
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
@@ -333,11 +375,11 @@ def getSizeFromVarsTable(vars_table):
     elif var_type == 'Dataframe':
       dataframe_counter += 1
 
-    print("int_counter: {}".format(int_counter))
-    print("float_counter: {}".format(float_counter))
-    print("char_counter: {}".format(char_counter))
-    print("string_counter: {}".format(string_counter))
-    print("dataframe_counter: {}".format(dataframe_counter))
+    # print("int_counter: {}".format(int_counter))
+    # print("float_counter: {}".format(float_counter))
+    # print("char_counter: {}".format(char_counter))
+    # print("string_counter: {}".format(string_counter))
+    # print("dataframe_counter: {}".format(dataframe_counter))
   
   return (
     int_counter * INT_SIZE + 
@@ -347,10 +389,12 @@ def getSizeFromVarsTable(vars_table):
     dataframe_counter * DATAFRAME_SIZE
   )
 
-def removeVarsTableInFunction(id):
-  print("------")
-  print(function_directory[id].vars_table)
+def reachedFunctionDefinitionEnd(id):
+  # Save ERA Size on function_directory
   size = getSizeFromVarsTable(function_directory[id].vars_table)
-  print(size)
+  size += temp_size[0]
   function_directory[id].size = size
+  # Release varstable
   function_directory[id].vars_table = {}
+  # Generate ENDFUNC quad
+  generateAndAppendQuad('ENDFUNC', None, None, None, False, None)

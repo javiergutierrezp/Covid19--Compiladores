@@ -108,10 +108,10 @@ factor : identificador {insertIdToStack($identificador.text)} | cte {insertCteTo
 estatuto : (llamadametodo PUNTOYCOMA? | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
          ;
 
-llamadametodo : ID {validateFunctionExistance($ID.text)} PARENTESISI (megaexpresion {incrementReceivedParamCounter()} (COMA megaexpresion {incrementReceivedParamCounter()})*)? {receivedFunctionParameters($ID.text)} PARENTESISD
+llamadametodo : ID {validateFunctionExistance($ID.text)} {insertERASize($ID.text)} PARENTESISI (megaexpresion {incrementReceivedParamCounter()} (COMA megaexpresion {incrementReceivedParamCounter()})*)? {receivedFunctionParameters($ID.text)} PARENTESISD {insertGOSUB($ID.text)} 
               ;
 
-regresa : REGRESA PARENTESISI megaexpresion PARENTESISD
+regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {test()} PUNTOYCOMA
         ;
 
 asignacion : identificador {insertIdToStack($identificador.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
@@ -120,7 +120,7 @@ asignacion : identificador {insertIdToStack($identificador.text)} IGUAL {insertO
 identificador : ID (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD (CORCHETECUADRADOI (identificador | cte) CORCHETECUADRADOD)?)?
               ;           
 
-programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', None)} {includeVarsTableInFunction('principal')} (metodo)* funcp
+programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', None)} {includeVarsTableInFunction('principal')} {addGotoPrincipal()} (metodo)* funcp
          ;     
 
 varx : VAR (var (COMA identificador {addVarToVarsTable(None, $identificador.text, $var.text)})* PUNTOYCOMA)+
@@ -135,5 +135,5 @@ funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque
 tipo : (INT | FLOAT | STRING | CHAR | DATAFRAME)
      ;         
 
-metodo : FUNCION tipo? ID {addFunctionToDirectory($ID.text, $tipo.text)} {setScope($ID.text)} PARENTESISI (var {addVarToFunctionParams($var.text, $ID.text)} (COMA var {addVarToFunctionParams($var.text, $ID.text)})*)?  PARENTESISD PUNTOYCOMA  (varx)? {includeVarsTableInFunction($ID.text)} CORCHETEI (estatuto)* regresa? CORCHETED {removeVarsTableInFunction($ID.text)}
+metodo : FUNCION tipo? ID {addFunctionToDirectory($ID.text, $tipo.text)} {setScope($ID.text)} PARENTESISI (var {addVarToFunctionParams($var.text, $ID.text)} (COMA var {addVarToFunctionParams($var.text, $ID.text)})*)?  PARENTESISD PUNTOYCOMA  (varx)? {includeVarsTableInFunction($ID.text)} {rememberBeginingOfFunction($ID.text)} CORCHETEI (estatuto)* regresa? CORCHETED {reachedFunctionDefinitionEnd($ID.text)}
        ;       
