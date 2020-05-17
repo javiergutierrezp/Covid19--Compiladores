@@ -4,7 +4,7 @@ from grammar.covid19Lexer import covid19Lexer
 from grammar.covid19Parser import covid19Parser
 from grammar.covid19Listener import covid19Listener
 from antlr4.tree.Trees import Trees
-from semantics import function_directory, quads
+from semantics import *
 
 def main(argv):
     input_stream = FileStream(argv[1])

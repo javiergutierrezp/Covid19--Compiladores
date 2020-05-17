@@ -6,12 +6,22 @@ int : g;
 int : x;
 char : z[4][2];
 
-funcion emilio (int : h, char : b[4][2], int : c[10][20]);
+funcion int javi (int : h, char : b[4][2], int : c[10][20]);
 var
 Dataframe : wazabe;
 {
    escribe("hello");
    g = x + c;
+   regresa (x + c);
+}
+
+funcion int emilio (int : h, char : b[4][2], int : c[10][20]);
+var
+Dataframe : wazabe;
+{
+   escribe("hello");
+   g = x + c;
+   regresa (javi(1,z,a));
 }
 
 principal () 

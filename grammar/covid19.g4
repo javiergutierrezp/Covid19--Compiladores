@@ -79,7 +79,7 @@ decision : SI PARENTESISI megaexpresion {addGotoF()} PARENTESISD ENTONCES bloque
 cargadatos : CARGAARCHIVO PARENTESISI ID COMA (identificador | cte) COMA (identificador | cte) COMA (identificador | cte) PARENTESISD
            ;   
 
-cte : CTESTRING {insertTypeToStack('string')} | CTEINT {insertTypeToStack('int')} | CTEFLOAT {insertTypeToStack('float')} | CTECHAR {insertTypeToStack('char')}
+cte : CTESTRING {insertCteToStructs($CTESTRING.text, 'string')} | CTEINT {insertCteToStructs($CTEINT.text, 'int')} | CTEFLOAT {insertCteToStructs($CTEFLOAT.text, 'float')} | CTECHAR {insertCteToStructs($CTECHAR.text, 'char')}
     ;
 
 lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA identificador {readId($identificador.text)})*) PARENTESISD
@@ -111,7 +111,7 @@ estatuto : (llamadametodo PUNTOYCOMA? | asignacion PUNTOYCOMA | lectura PUNTOYCO
 llamadametodo : ID {validateFunctionExistance($ID.text)} {insertERASize($ID.text)} PARENTESISI (megaexpresion {incrementReceivedParamCounter()} (COMA megaexpresion {incrementReceivedParamCounter()})*)? {receivedFunctionParameters($ID.text)} PARENTESISD {insertGOSUB($ID.text)} 
               ;
 
-regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {test()} PUNTOYCOMA
+regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {generateReturnQuad($megaexpresion.text)} PUNTOYCOMA
         ;
 
 asignacion : identificador {insertIdToStack($identificador.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 

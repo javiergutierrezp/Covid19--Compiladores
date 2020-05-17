@@ -8,6 +8,7 @@ function_directory = {}
 params_directory = {}
 current_scope = ['principal']
 var_directory = [{}]
+cte_directory = [{}]
 quads = []
 operators_stack = []
 jump_stack = []
@@ -46,6 +47,13 @@ class Variable:
 
   def __repr__(self):
     return "Variable({}, {}, {})".format(self.name, self.type, self.dimensions)
+
+class Constant:
+  def __init__(self, value, type):
+    self.value = value
+    self.type = type
+  def __repr__(self):
+    return "CTE({} : {})".format(self.type, self.value)
 
 class Function:
   def __init__(self, name, var_type, params, first_quad, size, vars_table):
@@ -156,7 +164,8 @@ def initializeVarsTable():
   print("test")
 
 def insertGOSUB(function_name):
-  generateAndAppendQuad("GOSUB", function_name, None, None, False, None)  
+  generateAndAppendQuad("GOSUB", function_name, None, None, False, None)
+  generateAndAppendQuad("=", function_name, None, temp_number[0], True, function_directory['principal'].vars_table[function_name].type)
 
 
 
@@ -209,8 +218,10 @@ def forEvaluation():
 
 ########## Cuadruplos estatutos lineales ##########
 
-def insertTypeToStack(t):
-  type_stack.append(t)
+def insertCteToStructs(cte, cte_type):
+  type_stack.append(cte_type)
+  if (cte):
+    cte_directory[0][str(cte)] = Constant(cte, cte_type)
 
 def insertCteToStack(cte):
   ids_stack.append(cte)
@@ -267,7 +278,7 @@ def leaving(origin):
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
         generateAndAppendQuad(operator, left_operand, right_operand, temp_number[0], True, result_type)
-        insertTypeToStack(result_type)
+        insertCteToStructs(None, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
@@ -293,6 +304,48 @@ def getSizeOfType(var_type):
       return CHAR_SIZE
   elif(var_type == "Dataframe"):
       return DATAFRAME_SIZE
+
+def generateReturnQuad(megaexpresion):
+  # print(megaexpresion)
+  megaexpresion_return_type = None
+  return_value = None
+  if (any(operator in megaexpresion for operator in operators)): # Operation
+    # print("operation found")
+    # print(quads)
+    # print(ids_stack)
+    # print(type_stack)
+    return_value = ids_stack[len(ids_stack) - 1]
+    megaexpresion_return_type = type_stack[len(type_stack) - 1]
+  elif ('(' in megaexpresion): # Function
+    called_function = megaexpresion[: megaexpresion.find('(')]
+    megaexpresion_return_type = function_directory['principal'].vars_table[called_function].type
+    return_value = called_function
+  else: # CTE or ID
+    # print("cte or id found")
+    if (megaexpresion in cte_directory): #cte
+      # print("it's a constantttt")
+      megaexpresion_return_type = cte_directory[megaexpresion].type
+    elif (megaexpresion in function_directory[current_scope[0]].vars_table):
+      # print("it's a local id")
+      megaexpresion_return_type = function_directory[current_scope[0]].vars_table[megaexpresion].type
+    elif (megaexpresion in function_directory['principal'].vars_table):
+      # print("it's a global id")
+      megaexpresion_return_type = function_directory['principal'].vars_table[megaexpresion].type
+    else:
+      # print("something's wrong")
+      quit()
+    # print("assigning...")
+    return_value = megaexpresion
+  if (megaexpresion_return_type == function_directory['principal'].vars_table[current_scope[0]].type):
+    generateAndAppendQuad('RETURN', None, None, return_value, False, megaexpresion_return_type)
+  else:
+    raise EnvironmentError("""
+        The return type the function '{}' expected was '{}' but received '{}'.
+      """.format(
+        current_scope[0],
+        function_directory['principal'].vars_table[current_scope[0]].type,
+        megaexpresion_return_type
+      ))
 
 def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type):
   if 'GOTO' in operator:
@@ -337,6 +390,7 @@ def setScope(id):
 
 def addFunctionToDirectory(id, type):
   function_directory[id] = Function(id, type, [], None, None, {})
+  function_directory['principal'].vars_table[id] = Variable(id, type, {})
 
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
@@ -374,12 +428,6 @@ def getSizeFromVarsTable(vars_table):
       string_counter += getVarCount(var_dimensions)
     elif var_type == 'Dataframe':
       dataframe_counter += 1
-
-    # print("int_counter: {}".format(int_counter))
-    # print("float_counter: {}".format(float_counter))
-    # print("char_counter: {}".format(char_counter))
-    # print("string_counter: {}".format(string_counter))
-    # print("dataframe_counter: {}".format(dataframe_counter))
   
   return (
     int_counter * INT_SIZE + 
