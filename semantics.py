@@ -1,8 +1,8 @@
 INT_SIZE = 2
-FLOAT_SIZE = 3
+FLOAT_SIZE = 4
 CHAR_SIZE = 1
-STRING_SIZE = 2
-DATAFRAME_SIZE = 4
+STRING_SIZE = 6
+DATAFRAME_SIZE = 8
 
 function_directory = {}
 params_directory = {}
@@ -166,8 +166,6 @@ def initializeVarsTable():
 def insertGOSUB(function_name):
   generateAndAppendQuad("GOSUB", function_name, None, None, False, None)
   generateAndAppendQuad("=", function_name, None, temp_number[0], True, function_directory['principal'].vars_table[function_name].type)
-
-
 
 ########## Cuadruplos estatutos no lineales ##########
 
