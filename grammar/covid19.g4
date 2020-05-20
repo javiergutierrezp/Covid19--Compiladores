@@ -85,7 +85,7 @@ cte : CTESTRING {insertCteToStructs($CTESTRING.text, 'string')} | CTEINT {insert
 lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA identificador {readId($identificador.text)})*) PARENTESISD
         ;
 
-escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {writeExpression()}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {writeExpression()}))* PARENTESISD
+escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write()}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write()}))* PARENTESISD
           ;
 
 // En escritura estamos aceptando cualquier cte como letrero, atacar con semantica?

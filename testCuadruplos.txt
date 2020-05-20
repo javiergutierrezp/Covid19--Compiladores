@@ -3,10 +3,11 @@ var
 int : c;
 int : a[10][20];
 int : g;
+float : g2;
 int : x;
 char : z[4][2];
 
-funcion int javi (int : h, char : b[4][2], int : c[10][20]);
+funcion int javi (float : h, char : b[4][2], int : c[10][20]);
 var
 Dataframe : wazabe;
 {
@@ -21,7 +22,7 @@ Dataframe : wazabe;
 {
    escribe("hello");
    g = x + c;
-   regresa (javi(1,z,a));
+   regresa (javi(g2,z,a));
 }
 
 principal () 
