@@ -1,0 +1,20 @@
+Programa patito;
+var
+int: i, j, k;
+float: f;
+
+funcion uno (int : a, int : b);
+{
+    si (a > 0) {
+        i= a+b*j+i;
+        escribe(i+j);
+        uno (a-i, i);
+    }
+    sino {
+        escribe ( a + b );
+    }
+}
+
+principal() {
+    i = 2;
+}

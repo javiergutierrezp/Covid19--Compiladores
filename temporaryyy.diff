@@ -1,0 +1,444 @@
+diff --git a/__pycache__/semantics.cpython-37.pyc b/__pycache__/semantics.cpython-37.pyc
+index 1ec9b86..0d19d20 100644
+Binary files a/__pycache__/semantics.cpython-37.pyc and b/__pycache__/semantics.cpython-37.pyc differ
+diff --git a/grammar/__pycache__/covid19Lexer.cpython-37.pyc b/grammar/__pycache__/covid19Lexer.cpython-37.pyc
+index edf4438..555a1d0 100644
+Binary files a/grammar/__pycache__/covid19Lexer.cpython-37.pyc and b/grammar/__pycache__/covid19Lexer.cpython-37.pyc differ
+diff --git a/grammar/__pycache__/covid19Listener.cpython-37.pyc b/grammar/__pycache__/covid19Listener.cpython-37.pyc
+index 565bb6c..9edd5d8 100644
+Binary files a/grammar/__pycache__/covid19Listener.cpython-37.pyc and b/grammar/__pycache__/covid19Listener.cpython-37.pyc differ
+diff --git a/grammar/__pycache__/covid19Parser.cpython-37.pyc b/grammar/__pycache__/covid19Parser.cpython-37.pyc
+index e13a484..49aec80 100644
+Binary files a/grammar/__pycache__/covid19Parser.cpython-37.pyc and b/grammar/__pycache__/covid19Parser.cpython-37.pyc differ
+diff --git a/grammar/covid19.g4 b/grammar/covid19.g4
+index f97a7ce..7d883d5 100644
+--- a/grammar/covid19.g4
++++ b/grammar/covid19.g4
+@@ -85,7 +85,7 @@ cte : CTESTRING {insertCteToStructs($CTESTRING.text, 'string')} | CTEINT {insert
+ lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA identificador {readId($identificador.text)})*) PARENTESISD
+         ;
+ 
+-escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {writeExpression()}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {writeExpression()}))* PARENTESISD
++escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write()}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write()}))* PARENTESISD
+           ;
+ 
+ // En escritura estamos aceptando cualquier cte como letrero, atacar con semantica?
+diff --git a/semantics.py b/semantics.py
+index 500a449..780f5a2 100644
+--- a/semantics.py
++++ b/semantics.py
+@@ -1,28 +1,11 @@
+ INT_SIZE = 2
+-FLOAT_SIZE = 3
++FLOAT_SIZE = 4
+ CHAR_SIZE = 1
+-STRING_SIZE = 2
+-DATAFRAME_SIZE = 4
++STRING_SIZE = 6
++DATAFRAME_SIZE = 8
+ 
+-function_directory = {}
+-params_directory = {}
+-current_scope = ['principal']
+-var_directory = [{}]
+-cte_directory = [{}]
+-quads = []
+-operators_stack = []
+-jump_stack = []
+-ids_stack = []
+-type_stack = []
+-jumps_stack = []
+-operators = ['+','-','*','/', ';'] #TODO: Implementar
+-temp_number = [0]
+-temp_size = [0]
+-received_param_counter = [0]
+-scope = [None]
+ from grammar.covid19SemanticCube import semanticCube
+-
+-semantic_cube = semanticCube()
++from virtualmemory import MemorySegment
+ 
+ class Quad:
+   def __init__(self, operator, operand_left, operand_right, result_id):
+@@ -39,34 +22,112 @@ class Quad:
+       self.result_id,
+     )
+ 
++class VarCount:
++  def __init__(self, int_type=0, float_type=0, char_type=0, string_type=0, dataframe_type=0):
++    self.int_type = int_type
++    self.float_type = float_type
++    self.char_type = char_type
++    self.string_type = string_type
++    self.dataframe_type = dataframe_type
++  
++  def increment(self, var_type):
++    if(var_type == "string"):
++      self.string_type += 1
++    elif(var_type == "int"):
++      self.int_type += 1
++    elif(var_type == "float"):
++      self.float_type += 1
++    elif(var_type == "char"):
++      self.char_type += 1
++    elif(var_type == "Dataframe"):
++      self.dataframe_type += 1
++  
++  def __add__(self, var_counter): 
++      string_type = self.string_type + var_counter.string_type
++      int_type = self.int_type + var_counter.int_type
++      float_type = self.float_type + var_counter.float_type
++      char_type = self.char_type + var_counter.char_type
++      dataframe_type = self.dataframe_type + var_counter.dataframe_type
++      return VarCount(int_type, float_type, char_type, string_type, dataframe_type)
++    
+ class Variable:
+-  def __init__(self, name, type, dimensions):
++  def __init__(self, name, type, dimensions, memory_cell):
+     self.name = name
+     self.type = type
+     self.dimensions = dimensions
++    self.memory_cell = memory_cell
+ 
+   def __repr__(self):
+     return "Variable({}, {}, {})".format(self.name, self.type, self.dimensions)
+ 
+ class Constant:
+-  def __init__(self, value, type):
++  def __init__(self, value, type, memory_cell):
+     self.value = value
+     self.type = type
++    self.memory_cell = memory_cell
+   def __repr__(self):
+     return "CTE({} : {})".format(self.type, self.value)
+ 
+ class Function:
+-  def __init__(self, name, var_type, params, first_quad, size, vars_table):
++  def __init__(self, name, var_type, params, first_quad, var_count, vars_table):
+     self.name = name
+     self.type = var_type
+     self.params = params
+     self.first_quad = first_quad
+-    self.size = size
++    self.var_count = var_count
+     self.vars_table = vars_table
+ 
+   def __repr__(self):
+     return "Function({}, {}, {}, {}, {}, {})".format(self.name, self.type, str(self.params), self.first_quad, self.size, str(self.vars_table))
+ 
++virtual_memory = {
++    'global': {
++        'int': MemorySegment(0, 1800, 0),
++        'float': MemorySegment(1800, 1800, 0),
++        'char': MemorySegment(3600, 600, 0),
++        'string': MemorySegment(4200, 600, 0),
++        'Dataframe': MemorySegment(4800, 1200, 0),
++    },
++    'temporary': {
++        'int': MemorySegment(6000, 3000, 0),
++        'float': MemorySegment(9000, 3000, 0),
++        'char': MemorySegment(12000, 1000, 0),
++        'string': MemorySegment(13000, 1000, 0),
++        'Dataframe': MemorySegment(14000, 2000, 0),
++    },
++    'local': {
++        'int': MemorySegment(16000, 2700, 0),
++        'float': MemorySegment(18700, 2700, 0),
++        'char': MemorySegment(21400, 900, 0),
++        'string': MemorySegment(22300, 900, 0),
++        'Dataframe': MemorySegment(23200, 1800, 0),
++    },
++    'constants': {
++        'int': MemorySegment(25000, 2000, 0),
++        'float': MemorySegment(27000, 2000, 0),
++        'char': MemorySegment(28000, 1000, 0),
++        'string': MemorySegment(29000, 1000, 0),
++        'Dataframe': MemorySegment(30000, 1000, 0),
++    }
++}
++function_directory = {}
++params_directory = {}
++current_scope = ['principal']
++var_directory = [{}]
++cte_directory = [{}]
++quads = []
++operators_stack = []
++jump_stack = []
++ids_stack = []
++type_stack = []
++jumps_stack = []
++operators = ['+','-','*','/', ';'] #TODO: Implementar
++temp_number = [0]
++received_param_counter = [0]
++scope = [None]
++semantic_cube = semanticCube()
++temp_var_counter = VarCount()
++
+ ########## Utils ##########
+ 
+ def test():
+@@ -78,10 +139,13 @@ def test():
+ def addMigajitaDePan():
+   jump_stack.append(len(quads))
+ 
++def getVirtualMemoryFrom(scope, var_type):
++  current_temporary_memory_cell = virtual_memory[scope][var_type].incrementUsedSpace()
++
+ ########## Cuadruplos funciones ##########
+ 
+ def rememberBeginingOfFunction(function_name):
+-  temp_size[0] = 0
++  temp_var_counter = VarCount()
+   function_directory[function_name].first_quad = len(quads);
+ 
+ def validateFunctionExistance(function_name):
+@@ -97,7 +161,7 @@ def addVarToFunctionParams(var, function_name):
+   var_id = var[var.find(':')+1:]
+   var_type = var[:var.find(':')]
+   dimensions, var_id = getDimensions(var_id)
+-  function_directory[function_name].params.append(Variable(var_id, var_type, dimensions))
++  function_directory[function_name].params.append(Variable(var_id, var_type, dimensions, virtual_memory['local'][var_type].incrementUsedSpace()))
+ 
+ def incrementReceivedParamCounter():
+   received_param_counter[0] += 1
+@@ -125,6 +189,8 @@ def receivedFunctionParameters(function_name):
+       ]
+       given_param_type = type_stack[type_stack_len - 1 - i]
+ 
++      print("Evaluating i={}".format(i))
++      print(definition_param.type, given_param_type)
+       
+       if definition_param.dimensions != {}:
+         given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
+@@ -148,7 +214,7 @@ def receivedFunctionParameters(function_name):
+           was expecting type '{}' but received type '{}'
+         """.format(
+           function_name,
+-          i + 1,
++          len(function_directory[function_name].params) - i,
+           definition_param.type,
+           given_param_type
+         ))
+@@ -165,9 +231,8 @@ def initializeVarsTable():
+ 
+ def insertGOSUB(function_name):
+   generateAndAppendQuad("GOSUB", function_name, None, None, False, None)
+-  generateAndAppendQuad("=", function_name, None, temp_number[0], True, function_directory['principal'].vars_table[function_name].type)
+-
+-
++  function_type = function_directory['principal'].vars_table[function_name].type
++  generateAndAppendQuad("=", function_name, None, getVirtualMemoryFrom('temporary', function_type), True, function_type)
+ 
+ ########## Cuadruplos estatutos no lineales ##########
+ 
+@@ -207,6 +272,10 @@ def addGotoEnd(origin):
+ 
+ 
+ def forEvaluation():
++  print("*******")
++  print(quads)
++  print()
++  print("*******")
+   last_quad = quads[len(quads) - 1]
+   type_stack.append('int')
+   operators_stack.append('==')
+@@ -221,22 +290,24 @@ def forEvaluation():
+ def insertCteToStructs(cte, cte_type):
+   type_stack.append(cte_type)
+   if (cte):
+-    cte_directory[0][str(cte)] = Constant(cte, cte_type)
++    cte_directory[0][str(cte)] = Constant(cte, cte_type, virtual_memory['constants'][cte_type].incrementUsedSpace())
+ 
+ def insertCteToStack(cte):
+   ids_stack.append(cte)
+ 
+ def insertIdToStack(identificator):
+-  try:
+-    # print(function_directory)
+-    if identificator not in function_directory[current_scope[0]].vars_table:
+-      type_stack.append(function_directory['principal'].vars_table[identificator].type)
+-    else:
+-      type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
++  print('insertIdToStack {}'.format(identificator))
++  # Busca en donde está esta variable...
++  if identificator in function_directory['principal'].vars_table: # Global
++    type_stack.append(function_directory['principal'].vars_table[identificator].type)
++    ids_stack.append(identificator)
++  elif identificator in function_directory[current_scope[0]].vars_table: # Current scope
++    type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
+     ids_stack.append(identificator)
+-  except:
+-    print("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
++  else:
++    raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
+     quit()
++    
+ 
+ def insertOperator(operator):
+   operators_stack.append(operator)
+@@ -277,23 +348,21 @@ def leaving(origin):
+       if 'Error:' in result_type:
+         raise EnvironmentError(result_type[7:])
+       if (origin != 'asignacion'):
+-        generateAndAppendQuad(operator, left_operand, right_operand, temp_number[0], True, result_type)
++        generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type), True, result_type)
+         insertCteToStructs(None, result_type)
+       else:
+         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
+ 
+ def readId(identificator):
+-  generateAndAppendQuad('lee', identificator, -1, temp_number[0], False, "string")
++  generateAndAppendQuad('lee', identificator, -1, getVirtualMemoryFrom('temporary', "string"), False, "string")
+   type_stack.pop()
+ 
+-def writeExpression():
+-  write("t{}".format(temp_number[0] - 1))
+-
+-def write(idOrCte):
+-  generateAndAppendQuad('escribe', idOrCte, -1, temp_number[0], False, "string")
++def write():
++  print("CHECAR EN EL FUTURO, LE FALTA PUNCH")
++  generateAndAppendQuad('escribe', None, -1, None, False, "string")
+   type_stack.pop()
+ 
+-def getSizeOfType(var_type):
++def incrementTempCounter(var_type):
+   if(var_type == "string"):
+     return STRING_SIZE
+   elif(var_type == "int"):
+@@ -332,7 +401,7 @@ def generateReturnQuad(megaexpresion):
+       # print("it's a global id")
+       megaexpresion_return_type = function_directory['principal'].vars_table[megaexpresion].type
+     else:
+-      # print("something's wrong")
++      raise EnvironmentError("The CTE or ID that was intended to return was not found. Perhaps it hasn't been declared yet?")
+       quit()
+     # print("assigning...")
+     return_value = megaexpresion
+@@ -361,8 +430,7 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
+       ids_stack.append("t{}".format(temp_num))
+     if type(temp_num) == int:
+       temp_number[0] = temp_num + 1
+-      temp_size[0] += getSizeOfType(result_type)
+-
++      temp_var_counter.increment(result_type)
+ 
+ def getDimensions(var_id):
+   id_string = str(var_id)
+@@ -377,12 +445,18 @@ def getDimensions(var_id):
+   return dimensions, id_string
+ 
+ def addVarToVarsTable(var_type, var_id, last_var):
+-  if not last_var:
++  if var_id in function_directory: # It's a function's id
++      raise EnvironmentError("""
++        The id '{}' has already been declared as a function.
++      """.format(
++        var_id
++      ))
++  elif not last_var:
+     final_type = var_type
+   else:
+     final_type = last_var[:last_var.find(':')]
+   dimensions, id_string = getDimensions(var_id)
+-  var_directory[0][id_string] = Variable(id_string, final_type, dimensions)
++  var_directory[0][id_string] = Variable(id_string, final_type, dimensions, virtual_memory['local'][var_type].incrementUsedSpace())
+ 
+ 
+ def setScope(id):
+@@ -390,7 +464,7 @@ def setScope(id):
+ 
+ def addFunctionToDirectory(id, type):
+   function_directory[id] = Function(id, type, [], None, None, {})
+-  function_directory['principal'].vars_table[id] = Variable(id, type, {})
++  function_directory['principal'].vars_table[id] = Variable(id, type, {}, virtual_memory['global'][type].incrementUsedSpace())
+ 
+ def includeVarsTableInFunction(id):
+   function_directory[id].vars_table = var_directory[0]
+@@ -408,7 +482,7 @@ def getVarCount(dimensions):
+   else:
+     return getCellCount(dimensions)
+ 
+-def getSizeFromVarsTable(vars_table):
++def getVarCountFromVarsTable(vars_table):
+   int_counter = 0
+   float_counter = 0
+   char_counter = 0
+@@ -429,19 +503,17 @@ def getSizeFromVarsTable(vars_table):
+     elif var_type == 'Dataframe':
+       dataframe_counter += 1
+   
+-  return (
+-    int_counter * INT_SIZE + 
+-    float_counter * FLOAT_SIZE +
+-    char_counter * CHAR_SIZE +
+-    string_counter * STRING_SIZE +
+-    dataframe_counter * DATAFRAME_SIZE
++  return VarCount(
++    int_counter,
++    float_counter,
++    char_counter,
++    string_counter,
++    dataframe_counter,
+   )
+ 
+ def reachedFunctionDefinitionEnd(id):
+   # Save ERA Size on function_directory
+-  size = getSizeFromVarsTable(function_directory[id].vars_table)
+-  size += temp_size[0]
+-  function_directory[id].size = size
++  function_directory[id].var_count = getVarCountFromVarsTable(function_directory[id].vars_table) + temp_var_counter
+   # Release varstable
+   function_directory[id].vars_table = {}
+   # Generate ENDFUNC quad
+diff --git a/testCuadruplos.txt b/testCuadruplos.txt
+index 80efcf0..137a094 100644
+--- a/testCuadruplos.txt
++++ b/testCuadruplos.txt
+@@ -3,10 +3,11 @@ var
+ int : c;
+ int : a[10][20];
+ int : g;
++float : g2;
+ int : x;
+ char : z[4][2];
+ 
+-funcion int javi (int : h, char : b[4][2], int : c[10][20]);
++funcion int javi (float : h, char : b[4][2], int : c[10][20]);
+ var
+ Dataframe : wazabe;
+ {
+@@ -21,7 +22,7 @@ Dataframe : wazabe;
+ {
+    escribe("hello");
+    g = x + c;
+-   regresa (javi(1,z,a));
++   regresa (javi(g2,z,a));
+ }
+ 
+ principal () 
+diff --git a/virtualmemory.py b/virtualmemory.py
+new file mode 100644
+index 0000000..415a475
+--- /dev/null
++++ b/virtualmemory.py
+@@ -0,0 +1,18 @@
++class MemorySegment():
++    def __init__(self, beginning, size, used_space = 0):
++        self.beginning = beginning
++        self.size = size
++        self.used_space = used_space
++
++    def incrementUsedSpace(self):
++        current_memory_cell = self.beginning + self.used_space
++        self.used_space += 1
++        return current_memory_cell
++
++class MemorySegmentTwo():
++    def __init__(self, var_count):
++        self.int_space = [None] * var_count.int_type
++        self.float_space = [None] * var_count.float_type
++        self.char_space = [None] * var_count.char_type
++        self.string_space = [None] * var_count.string_type
++        self.dataframe_space = [None] * var_count.dataframe_type
+\ No newline at end of file

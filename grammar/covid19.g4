@@ -85,7 +85,7 @@ cte : CTESTRING {insertCteToStructs($CTESTRING.text, 'string')} | CTEINT {insert
 lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA identificador {readId($identificador.text)})*) PARENTESISD
         ;
 
-escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write()}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write()}))* PARENTESISD
+escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}))* PARENTESISD
           ;
 
 // En escritura estamos aceptando cualquier cte como letrero, atacar con semantica?
@@ -105,7 +105,7 @@ termino : factor {leaving('factor')} ((MULTIPLICACION {insertOperator($MULTIPLIC
 factor : identificador {insertIdToStack($identificador.text)} | cte {insertCteToStack($cte.text)} | llamadametodo  | PARENTESISI {insertParenthesis()} megaexpresion PARENTESISD {deleteParenthesis()}
        ;       
 
-estatuto : (llamadametodo PUNTOYCOMA? | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
+estatuto : (llamadametodo PUNTOYCOMA | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
          ;
 
 llamadametodo : ID {validateFunctionExistance($ID.text)} {insertERASize($ID.text)} PARENTESISI (megaexpresion {incrementReceivedParamCounter()} (COMA megaexpresion {incrementReceivedParamCounter()})*)? {receivedFunctionParameters($ID.text)} PARENTESISD {insertGOSUB($ID.text)} 

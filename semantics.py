@@ -1,3 +1,5 @@
+SHOW_VIRTUAL = False
+
 INT_SIZE = 2
 FLOAT_SIZE = 4
 CHAR_SIZE = 1
@@ -15,7 +17,7 @@ class Quad:
     self.result_id = result_id
 
   def __repr__(self):
-    return "\nQuad({}, {}, {}, {})".format(
+    return "Quad({}, {}, {}, {})".format(
       self.operator,
       self.operand_left,
       self.operand_right,
@@ -49,6 +51,15 @@ class VarCount:
       char_type = self.char_type + var_counter.char_type
       dataframe_type = self.dataframe_type + var_counter.dataframe_type
       return VarCount(int_type, float_type, char_type, string_type, dataframe_type)
+
+  def __repr__(self):
+    return "VarCount({}, {}, {}, {}, {})".format(
+      self.int_type,
+      self.float_type,
+      self.char_type,
+      self.string_type,
+      self.dataframe_type,
+    )
     
 class Variable:
   def __init__(self, name, type, dimensions, memory_cell):
@@ -126,7 +137,7 @@ temp_number = [0]
 received_param_counter = [0]
 scope = [None]
 semantic_cube = semanticCube()
-temp_var_counter = VarCount()
+temp_var_counter = [VarCount(0,0,0,0,0)]
 
 ########## Utils ##########
 
@@ -139,13 +150,33 @@ def test():
 def addMigajitaDePan():
   jump_stack.append(len(quads))
 
+def getVarCountFromType(var_type):
+  if(var_type == "string"):
+    return temp_var_counter[0].string_type
+  elif(var_type == "int"):
+    return temp_var_counter[0].int_type
+  elif(var_type == "float"):
+    return temp_var_counter[0].float_type
+  elif(var_type == "char"):
+    return temp_var_counter[0].char_type
+  elif(var_type == "Dataframe"):
+    return temp_var_counter[0].dataframe_type
+
 def getVirtualMemoryFrom(scope, var_type):
-  current_temporary_memory_cell = virtual_memory[scope][var_type].incrementUsedSpace()
+  virtual_memory = None
+  if not SHOW_VIRTUAL:
+    print(var_type)
+    print(temp_var_counter)
+    virtual_memory = getVarCountFromType(var_type);
+  else:
+    virtual_memory = virtual_memory[scope][var_type].incrementUsedSpace()
+  return virtual_memory
 
 ########## Cuadruplos funciones ##########
 
 def rememberBeginingOfFunction(function_name):
-  temp_var_counter = VarCount()
+  print("************** DIMELOOOU **************")
+  temp_var_counter[0] = VarCount(0,0,0,0,0)
   function_directory[function_name].first_quad = len(quads);
 
 def validateFunctionExistance(function_name):
@@ -231,8 +262,11 @@ def initializeVarsTable():
 
 def insertGOSUB(function_name):
   generateAndAppendQuad("GOSUB", function_name, None, None, False, None)
-  function_type = function_directory['principal'].vars_table[function_name].type
-  generateAndAppendQuad("=", function_name, None, getVirtualMemoryFrom('temporary', function_type), True, function_type)
+  # Sólo si la función que estamos llamando regresa algo, hacemos el buen
+  # PARCHE GUADALUPANO WUWUWUW
+  if function_name in function_directory['principal'].vars_table:
+    function_type = function_directory['principal'].vars_table[function_name].type
+    generateAndAppendQuad("=", function_name, None, getVirtualMemoryFrom('temporary', function_type), True, function_type)
 
 ########## Cuadruplos estatutos no lineales ##########
 
@@ -242,12 +276,12 @@ def addGotoF():
   if exp_type != 'int':
     raise EnvironmentError("Type missmatch")
   operand = ids_stack.pop()
-  generateAndAppendQuad('GOTOF', operand, -1, None, False, None)
+  generateAndAppendQuad('GOTOF', operand, None, None, False, None)
   jump_stack.append(len(quads) - 1)
 
 def addGotoA():
   last_goto_index = jump_stack.pop()
-  generateAndAppendQuad('GOTO', -1, -1, None, False, None)
+  generateAndAppendQuad('GOTO', None, None, None, False, None)
   jump_stack.append(len(quads) - 1)    
   quads[last_goto_index].result_id = len(quads)
 
@@ -266,7 +300,7 @@ def addGotoEnd(origin):
     evaluation_index = jump_stack.pop()
     iterator_index = evaluation_index - 1
     generateAndAppendQuad('+', quads[iterator_index].result_id, 1, quads[iterator_index].result_id, False, "int")
-    generateAndAppendQuad('GOTO', -1, -1, evaluation_index, False, None)
+    generateAndAppendQuad('GOTO', None, None, evaluation_index, False, None)
     # Decir que cuando N == M nos salimos del for
     quads[last_goto_index].result_id = len(quads)
 
@@ -282,7 +316,7 @@ def forEvaluation():
   ids_stack.append(last_quad.result_id)
   leaving('comparacion')
   jump_stack.append(len(quads) - 1)
-  generateAndAppendQuad('GOTOV', ids_stack.pop(), -1, None, False, None)
+  generateAndAppendQuad('GOTOV', ids_stack.pop(), None, None, False, None)
   jump_stack.append(len(quads) - 1)
 
 ########## Cuadruplos estatutos lineales ##########
@@ -348,18 +382,22 @@ def leaving(origin):
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
+        print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
         generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type), True, result_type)
         insertCteToStructs(None, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
 def readId(identificator):
-  generateAndAppendQuad('lee', identificator, -1, getVirtualMemoryFrom('temporary', "string"), False, "string")
+  generateAndAppendQuad('lee', identificator, None, getVirtualMemoryFrom('temporary', "string"), False, "string")
   type_stack.pop()
 
-def write():
-  print("CHECAR EN EL FUTURO, LE FALTA PUNCH")
-  generateAndAppendQuad('escribe', None, -1, None, False, "string")
+def write(id_or_cte):
+  #TODO: Necesitamos traducir estas id's y CTE's a memory cells
+  if id_or_cte:
+    generateAndAppendQuad('escribe', id_or_cte, None, None, False, "string")
+  else:
+    generateAndAppendQuad('escribe', ids_stack.pop(), None, None, False, "string")
   type_stack.pop()
 
 def incrementTempCounter(var_type):
@@ -422,15 +460,14 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
     quads.append(new_quad)
   else:
     if type(temp_num) == int: # No asignacion
-      new_quad = Quad(operator, left_operand, right_operand, "t{}".format(temp_num))
+      new_quad = Quad(operator, left_operand, right_operand, "t{}{}".format(result_type[0], temp_num))
     else: # Asignacion
       new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
     if append_temp:
       ids_stack.append("t{}".format(temp_num))
     if type(temp_num) == int:
-      temp_number[0] = temp_num + 1
-      temp_var_counter.increment(result_type)
+      temp_var_counter[0].increment(result_type)
 
 def getDimensions(var_id):
   id_string = str(var_id)
@@ -456,15 +493,16 @@ def addVarToVarsTable(var_type, var_id, last_var):
   else:
     final_type = last_var[:last_var.find(':')]
   dimensions, id_string = getDimensions(var_id)
-  var_directory[0][id_string] = Variable(id_string, final_type, dimensions, virtual_memory['local'][var_type].incrementUsedSpace())
+  var_directory[0][id_string] = Variable(id_string, final_type, dimensions, getVirtualMemoryFrom('local', var_type))
 
 
 def setScope(id):
   current_scope[0] = id
 
-def addFunctionToDirectory(id, type):
-  function_directory[id] = Function(id, type, [], None, None, {})
-  function_directory['principal'].vars_table[id] = Variable(id, type, {}, virtual_memory['global'][type].incrementUsedSpace())
+def addFunctionToDirectory(function_id, function_type):
+  function_directory[function_id] = Function(function_id, function_type, [], None, None, {})
+  if function_type:
+    function_directory['principal'].vars_table[function_id] = Variable(function_id, function_type, {}, virtual_memory['global'][function_type].incrementUsedSpace())
 
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
@@ -513,8 +551,11 @@ def getVarCountFromVarsTable(vars_table):
 
 def reachedFunctionDefinitionEnd(id):
   # Save ERA Size on function_directory
-  function_directory[id].var_count = getVarCountFromVarsTable(function_directory[id].vars_table) + temp_var_counter
+  function_directory[id].var_count = getVarCountFromVarsTable(function_directory[id].vars_table) + temp_var_counter[0]
   # Release varstable
   function_directory[id].vars_table = {}
   # Generate ENDFUNC quad
   generateAndAppendQuad('ENDFUNC', None, None, None, False, None)
+  # Reset temp_number
+  
+  temp_number[0] = 0
