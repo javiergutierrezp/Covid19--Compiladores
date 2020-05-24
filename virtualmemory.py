@@ -4,8 +4,9 @@ class MemorySegment():
         self.size = size
         self.used_space = used_space
 
-    def setUsedSpace(self, var_count):
-        current_memory_cell = self.beginning + var_count
+    def incrementUsedSpace(self):
+        current_memory_cell = self.beginning + self.used_space
+        self.used_space += 1
         return current_memory_cell
 
 class MemorySegmentTwo():
