@@ -69,7 +69,7 @@ class Variable:
     self.memory_cell = memory_cell
 
   def __repr__(self):
-    return "Variable({}, {}, {})".format(self.name, self.type, self.dimensions)
+    return "Variable({}, {}, {}, {})".format(self.name, self.type, self.dimensions, self.memory_cell)
 
 class Constant:
   def __init__(self, value, type, memory_cell):
@@ -77,7 +77,7 @@ class Constant:
     self.type = type
     self.memory_cell = memory_cell
   def __repr__(self):
-    return "CTE({} : {})".format(self.type, self.value)
+    return "CTE({} : {}, {})".format(self.type, self.value, self.memory_cell)
 
 class Function:
   def __init__(self, name, var_type, params, first_quad, var_count, vars_table):
@@ -133,13 +133,41 @@ ids_stack = []
 type_stack = []
 jumps_stack = []
 operators = ['+','-','*','/', ';'] #TODO: Implementar
-temp_number = [0]
 received_param_counter = [0]
 scope = [None]
 semantic_cube = semanticCube()
+global_var_counter = [VarCount(0,0,0,0,0)]
+local_var_counter = [VarCount(0,0,0,0,0)]
 temp_var_counter = [VarCount(0,0,0,0,0)]
+cte_var_counter = [VarCount(0,0,0,0,0)]
 
 ########## Utils ##########
+
+def determineVarCounter(scope):
+  final_var_counter = None
+  if scope == 'global':
+    final_var_counter = global_var_counter
+  elif scope == 'local':
+    final_var_counter = local_var_counter
+  elif scope == 'temporary':
+    final_var_counter = temp_var_counter
+  elif scope == 'cte':
+    final_var_counter = cte_var_counter
+  return final_var_counter
+
+def incrementVarCounter(scope, var_type):
+  var_counter = determineVarCounter(scope)
+  var_counter[0].increment(var_type)
+
+def resetVarCounter(scope):
+  if SHOW_VIRTUAL:
+    for key in virtual_memory[scope]:
+      virtual_memory[scope][key].used_space = 0
+  else:
+    var_counter = determineVarCounter(scope)
+    var_counter[0] = VarCount(0,0,0,0,0)
+  
+
 
 def test():
   print("***************")
@@ -150,33 +178,63 @@ def test():
 def addMigajitaDePan():
   jump_stack.append(len(quads))
 
-def getVarCountFromType(var_type):
+def getVarCountFromType(scope, var_type):
+  final_var_counter = None
+  if scope == 'global':
+    final_var_counter = global_var_counter[0]
+  elif scope == 'local':
+    final_var_counter = local_var_counter[0]
+  elif scope == 'temporary':
+    final_var_counter = temp_var_counter[0]
+  elif scope == 'ctes':
+    final_var_counter = cte_var_counter[0]
+  
   if(var_type == "string"):
-    return temp_var_counter[0].string_type
+    return final_var_counter.string_type
   elif(var_type == "int"):
-    return temp_var_counter[0].int_type
+    return final_var_counter.int_type
   elif(var_type == "float"):
-    return temp_var_counter[0].float_type
+    return final_var_counter.float_type
   elif(var_type == "char"):
-    return temp_var_counter[0].char_type
+    return final_var_counter.char_type
   elif(var_type == "Dataframe"):
-    return temp_var_counter[0].dataframe_type
+    return final_var_counter.dataframe_type
 
-def getVirtualMemoryFrom(scope, var_type):
-  virtual_memory = None
-  if not SHOW_VIRTUAL:
-    print(var_type)
-    print(temp_var_counter)
-    virtual_memory = getVarCountFromType(var_type);
+def getVirtualMemoryFrom(scope, var_type, param, extra = None):
+  print(scope, var_type, param, extra)
+  final_scope = None
+  if scope != 'temporary':
+    if scope == 'principal':
+      final_scope = 'global'
+    else:
+      final_scope = 'local'
   else:
-    virtual_memory = virtual_memory[scope][var_type].incrementUsedSpace()
-  return virtual_memory
+    final_scope = scope
+
+  virtual_memory_cell = None
+  if not SHOW_VIRTUAL:
+    if param == 'temp_num':
+      virtual_memory_cell = getVarCountFromType(final_scope, var_type);
+    elif param == 'id':
+      virtual_memory_cell = extra
+  else:
+    print(final_scope, var_type)
+    if param == 'temp_num':
+      virtual_memory_cell = virtual_memory[final_scope][var_type].incrementUsedSpace()
+    elif param == 'id':
+      virtual_memory_cell = virtual_memory[final_scope][var_type].incrementUsedSpace()
+  print(virtual_memory_cell)
+  return virtual_memory_cell
 
 ########## Cuadruplos funciones ##########
 
 def rememberBeginingOfFunction(function_name):
   print("************** DIMELOOOU **************")
-  temp_var_counter[0] = VarCount(0,0,0,0,0)
+  resetVarCounter('temporary')
+  resetVarCounter('local')
+
+  print(temp_var_counter)
+  print(local_var_counter)
   function_directory[function_name].first_quad = len(quads);
 
 def validateFunctionExistance(function_name):
@@ -192,7 +250,7 @@ def addVarToFunctionParams(var, function_name):
   var_id = var[var.find(':')+1:]
   var_type = var[:var.find(':')]
   dimensions, var_id = getDimensions(var_id)
-  function_directory[function_name].params.append(Variable(var_id, var_type, dimensions, virtual_memory['local'][var_type].incrementUsedSpace()))
+  function_directory[function_name].params.append(Variable(var_id, var_type, dimensions, None))
 
 def incrementReceivedParamCounter():
   received_param_counter[0] += 1
@@ -266,7 +324,7 @@ def insertGOSUB(function_name):
   # PARCHE GUADALUPANO WUWUWUW
   if function_name in function_directory['principal'].vars_table:
     function_type = function_directory['principal'].vars_table[function_name].type
-    generateAndAppendQuad("=", function_name, None, getVirtualMemoryFrom('temporary', function_type), True, function_type)
+    generateAndAppendQuad("=", function_name, None, getVirtualMemoryFrom('temporary', function_type, 'temp_num'), True, function_type)
 
 ########## Cuadruplos estatutos no lineales ##########
 
@@ -334,10 +392,12 @@ def insertIdToStack(identificator):
   # Busca en donde está esta variable...
   if identificator in function_directory['principal'].vars_table: # Global
     type_stack.append(function_directory['principal'].vars_table[identificator].type)
-    ids_stack.append(identificator)
+    print("************* ")
+    print(function_directory['principal'].vars_table[identificator])
+    ids_stack.append(function_directory['principal'].vars_table[identificator].memory_cell)
   elif identificator in function_directory[current_scope[0]].vars_table: # Current scope
     type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
-    ids_stack.append(identificator)
+    ids_stack.append(function_directory[current_scope[0]].vars_table[identificator].memory_cell)
   else:
     raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
     quit()
@@ -383,13 +443,13 @@ def leaving(origin):
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
         print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
-        generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type), True, result_type)
+        generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num'), True, result_type)
         insertCteToStructs(None, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
 def readId(identificator):
-  generateAndAppendQuad('lee', identificator, None, getVirtualMemoryFrom('temporary', "string"), False, "string")
+  generateAndAppendQuad('lee', identificator, None, getVirtualMemoryFrom('temporary', "string", 'temp_num'), False, "string")
   type_stack.pop()
 
 def write(id_or_cte):
@@ -460,14 +520,18 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
     quads.append(new_quad)
   else:
     if type(temp_num) == int: # No asignacion
-      new_quad = Quad(operator, left_operand, right_operand, "t{}{}".format(result_type[0], temp_num))
+      memory_cell = None
+      if SHOW_VIRTUAL:
+        memory_cell = temp_num
+      else:
+        memory_cell = "t{}{}".format(result_type[0], temp_num)
+      new_quad = Quad(operator, left_operand, right_operand, memory_cell)
+      incrementVarCounter('temporary', result_type)
+      if append_temp:
+        ids_stack.append(memory_cell)
     else: # Asignacion
       new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
-    if append_temp:
-      ids_stack.append("t{}".format(temp_num))
-    if type(temp_num) == int:
-      temp_var_counter[0].increment(result_type)
 
 def getDimensions(var_id):
   id_string = str(var_id)
@@ -493,7 +557,7 @@ def addVarToVarsTable(var_type, var_id, last_var):
   else:
     final_type = last_var[:last_var.find(':')]
   dimensions, id_string = getDimensions(var_id)
-  var_directory[0][id_string] = Variable(id_string, final_type, dimensions, getVirtualMemoryFrom('local', var_type))
+  var_directory[0][id_string] = Variable(id_string, final_type, dimensions, getVirtualMemoryFrom(current_scope[0], final_type, 'id', id_string))
 
 
 def setScope(id):
@@ -556,6 +620,3 @@ def reachedFunctionDefinitionEnd(id):
   function_directory[id].vars_table = {}
   # Generate ENDFUNC quad
   generateAndAppendQuad('ENDFUNC', None, None, None, False, None)
-  # Reset temp_number
-  
-  temp_number[0] = 0
