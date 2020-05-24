@@ -113,7 +113,7 @@ virtual_memory = {
         'string': MemorySegment(22300, 900, 0),
         'Dataframe': MemorySegment(23200, 1800, 0),
     },
-    'constants': {
+    'cte': {
         'int': MemorySegment(25000, 2000, 0),
         'float': MemorySegment(27000, 2000, 0),
         'char': MemorySegment(28000, 1000, 0),
@@ -186,7 +186,7 @@ def getVarCountFromType(scope, var_type):
     final_var_counter = local_var_counter[0]
   elif scope == 'temporary':
     final_var_counter = temp_var_counter[0]
-  elif scope == 'ctes':
+  elif scope == 'cte':
     final_var_counter = cte_var_counter[0]
   
   if(var_type == "string"):
@@ -203,7 +203,7 @@ def getVarCountFromType(scope, var_type):
 def getVirtualMemoryFrom(scope, var_type, param, extra = None):
   print(scope, var_type, param, extra)
   final_scope = None
-  if scope != 'temporary':
+  if scope != 'temporary' and scope != 'cte':
     if scope == 'principal':
       final_scope = 'global'
     else:
@@ -219,10 +219,7 @@ def getVirtualMemoryFrom(scope, var_type, param, extra = None):
       virtual_memory_cell = extra
   else:
     print(final_scope, var_type)
-    if param == 'temp_num':
-      virtual_memory_cell = virtual_memory[final_scope][var_type].incrementUsedSpace()
-    elif param == 'id':
-      virtual_memory_cell = virtual_memory[final_scope][var_type].incrementUsedSpace()
+    virtual_memory_cell = virtual_memory[final_scope][var_type].incrementUsedSpace()
   print(virtual_memory_cell)
   return virtual_memory_cell
 
@@ -381,11 +378,14 @@ def forEvaluation():
 
 def insertCteToStructs(cte, cte_type):
   type_stack.append(cte_type)
-  if (cte):
-    cte_directory[0][str(cte)] = Constant(cte, cte_type, virtual_memory['constants'][cte_type].incrementUsedSpace())
+  if cte and cte not in cte_directory[0]:
+    cte_directory[0][str(cte)] = Constant(cte, cte_type, getVirtualMemoryFrom('cte', cte_type, 'cte', cte))
 
 def insertCteToStack(cte):
-  ids_stack.append(cte)
+  if SHOW_VIRTUAL:
+    ids_stack.append(cte_directory[0][str(cte)].memory_cell)
+  else:
+    ids_stack.append(cte)
 
 def insertIdToStack(identificator):
   print('insertIdToStack {}'.format(identificator))
