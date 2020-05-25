@@ -410,7 +410,26 @@ class semanticCube():
             }
         }
 
-        self.idOfOper = {
+        self.id_to_oper = {
+            0 : '*',
+            1 : '/',
+            2 : '+',
+            3 : '-',
+            4 : '=',
+            5 : '<',
+            6 : '>',
+            7 : '!=',
+            8 : '==',
+            9 : '>=',
+            10 : '<=',
+            11 : 'AND',
+            12 : 'OR',
+            13 : 'Goto',
+            14 : 'GotoV',
+            15 : 'GotoF'
+        }
+
+        self.id_of_oper = {
             '*' : 0,
             '/' : 1,
             '+' : 2,
@@ -424,7 +443,7 @@ class semanticCube():
             '<=' : 10,
             'AND' : 11,
             'OR' : 12,
-            'Goto' : 13,
-            'GotoV' : 14,
-            'GotoF' : 15
+            'GOTO' : 13,
+            'GOTOV' : 14,
+            'GOTOF' : 15
         }

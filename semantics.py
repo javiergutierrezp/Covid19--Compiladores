@@ -143,6 +143,13 @@ cte_var_counter = [VarCount(0,0,0,0,0)]
 
 ########## Utils ##########
 
+def getVirtualOperator(operator):
+  if SHOW_VIRTUAL:
+    return semantic_cube.id_of_oper[operator]
+  else:
+    return operator
+
+
 def determineVarCounter(scope):
   final_var_counter = None
   if scope == 'global':
@@ -166,14 +173,6 @@ def resetVarCounter(scope):
   else:
     var_counter = determineVarCounter(scope)
     var_counter[0] = VarCount(0,0,0,0,0)
-  
-
-
-def test():
-  print("***************")
-  print(ids_stack)
-  print(type_stack)
-  print("***************")
 
 def addMigajitaDePan():
   jump_stack.append(len(quads))
@@ -201,7 +200,6 @@ def getVarCountFromType(scope, var_type):
     return final_var_counter.dataframe_type
 
 def getVirtualMemoryFrom(scope, var_type, param, extra = None):
-  print(scope, var_type, param, extra)
   final_scope = None
   if scope != 'temporary' and scope != 'cte':
     if scope == 'principal':
@@ -218,20 +216,20 @@ def getVirtualMemoryFrom(scope, var_type, param, extra = None):
     elif param == 'id':
       virtual_memory_cell = extra
   else:
-    print(final_scope, var_type)
+    # print(final_scope, var_type)
     virtual_memory_cell = virtual_memory[final_scope][var_type].incrementUsedSpace()
-  print(virtual_memory_cell)
+  # print(virtual_memory_cell)
   return virtual_memory_cell
 
 ########## Cuadruplos funciones ##########
 
 def rememberBeginingOfFunction(function_name):
-  print("************** DIMELOOOU **************")
+  # print("************** DIMELOOOU **************")
   resetVarCounter('temporary')
   resetVarCounter('local')
 
-  print(temp_var_counter)
-  print(local_var_counter)
+  # print(temp_var_counter)
+  # print(local_var_counter)
   function_directory[function_name].first_quad = len(quads);
 
 def validateFunctionExistance(function_name):
@@ -275,12 +273,12 @@ def receivedFunctionParameters(function_name):
       ]
       given_param_type = type_stack[type_stack_len - 1 - i]
 
-      print("Evaluating i={}".format(i))
-      print(definition_param.type, given_param_type)
+      # print("Evaluating i={}".format(i))
+      # print(definition_param.type, given_param_type)
       
       if definition_param.dimensions != {}:
         given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
-        print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
+        # print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
 
         if definition_param.dimensions != given_param_dimensions:
           raise EnvironmentError("""
@@ -304,16 +302,10 @@ def receivedFunctionParameters(function_name):
           definition_param.type,
           given_param_type
         ))
-      
-      # temp_vars_table[]
   received_param_counter[0] = 0
-  # initializeVarsTable();
 
 def insertERASize(function_name):
   generateAndAppendQuad("ERA", function_name, None, None, False, None)
-
-def initializeVarsTable():
-  print("test")
 
 def insertGOSUB(function_name):
   generateAndAppendQuad("GOSUB", function_name, None, None, False, None)
@@ -321,7 +313,7 @@ def insertGOSUB(function_name):
   # PARCHE GUADALUPANO WUWUWUW
   if function_name in function_directory['principal'].vars_table:
     function_type = function_directory['principal'].vars_table[function_name].type
-    generateAndAppendQuad("=", function_name, None, getVirtualMemoryFrom('temporary', function_type, 'temp_num'), True, function_type)
+    generateAndAppendQuad(getVirtualOperator("="), function_name, None, getVirtualMemoryFrom('temporary', function_type, 'temp_num'), True, function_type)
 
 ########## Cuadruplos estatutos no lineales ##########
 
@@ -331,17 +323,17 @@ def addGotoF():
   if exp_type != 'int':
     raise EnvironmentError("Type missmatch")
   operand = ids_stack.pop()
-  generateAndAppendQuad('GOTOF', operand, None, None, False, None)
+  generateAndAppendQuad(getVirtualOperator('GOTOF'), operand, None, None, False, None)
   jump_stack.append(len(quads) - 1)
 
 def addGotoA():
   last_goto_index = jump_stack.pop()
-  generateAndAppendQuad('GOTO', None, None, None, False, None)
+  generateAndAppendQuad(getVirtualOperator('GOTO'), None, None, None, False, None)
   jump_stack.append(len(quads) - 1)    
   quads[last_goto_index].result_id = len(quads)
 
 def addGotoPrincipal():
-  generateAndAppendQuad('GOTO', 'principal', None, None, False, None)
+  generateAndAppendQuad(getVirtualOperator('GOTO'), 'principal', None, None, False, None)
 
 def addGotoEnd(origin):
   # print(jump_stack)
@@ -354,24 +346,19 @@ def addGotoEnd(origin):
     # Decir que al finalizar el bloque for, re-evaluar la condición
     evaluation_index = jump_stack.pop()
     iterator_index = evaluation_index - 1
-    generateAndAppendQuad('+', quads[iterator_index].result_id, 1, quads[iterator_index].result_id, False, "int")
-    generateAndAppendQuad('GOTO', None, None, evaluation_index, False, None)
+    generateAndAppendQuad(getVirtualOperator('+'), quads[iterator_index].result_id, 1, quads[iterator_index].result_id, False, "int")
+    generateAndAppendQuad(getVirtualOperator('GOTO'), None, None, evaluation_index, False, None)
     # Decir que cuando N == M nos salimos del for
     quads[last_goto_index].result_id = len(quads)
 
-
 def forEvaluation():
-  print("*******")
-  print(quads)
-  print()
-  print("*******")
   last_quad = quads[len(quads) - 1]
   type_stack.append('int')
   operators_stack.append('==')
   ids_stack.append(last_quad.result_id)
   leaving('comparacion')
   jump_stack.append(len(quads) - 1)
-  generateAndAppendQuad('GOTOV', ids_stack.pop(), None, None, False, None)
+  generateAndAppendQuad(getVirtualOperator('GOTOV'), ids_stack.pop(), None, None, False, None)
   jump_stack.append(len(quads) - 1)
 
 ########## Cuadruplos estatutos lineales ##########
@@ -388,12 +375,12 @@ def insertCteToStack(cte):
     ids_stack.append(cte)
 
 def insertIdToStack(identificator):
-  print('insertIdToStack {}'.format(identificator))
+  # print('insertIdToStack {}'.format(identificator))
   # Busca en donde está esta variable...
   if identificator in function_directory['principal'].vars_table: # Global
     type_stack.append(function_directory['principal'].vars_table[identificator].type)
-    print("************* ")
-    print(function_directory['principal'].vars_table[identificator])
+    # print("************* ")
+    # print(function_directory['principal'].vars_table[identificator])
     ids_stack.append(function_directory['principal'].vars_table[identificator].memory_cell)
   elif identificator in function_directory[current_scope[0]].vars_table: # Current scope
     type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
@@ -401,10 +388,12 @@ def insertIdToStack(identificator):
   else:
     raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
     quit()
-    
 
 def insertOperator(operator):
-  operators_stack.append(operator)
+  if SHOW_VIRTUAL:
+    operators_stack.append(semantic_cube.id_of_oper[operator])
+  else:
+    operators_stack.append(operator)
 
 def deleteParenthesis():
   operators_stack.pop()
@@ -412,37 +401,58 @@ def deleteParenthesis():
 def insertParenthesis():
   operators_stack.append('(')
 
-def leaving(origin):
-  allowed_operators = None
-  if origin == 'factor':
-    allowed_operators = ['*', '/']
-  elif origin == 'termino':
-    allowed_operators = ['+', '-']
-  elif origin == 'comparacion':
-    allowed_operators = ['>', '<', '>=', '<=', '==', '!=']
-  elif origin == 'union':
-    allowed_operators = ['&', '|']
-  elif origin == 'asignacion':
-    allowed_operators = ['=']
+def getAllowedOperators(origin):
+  allowed_operators = []
+  if SHOW_VIRTUAL:
+    if origin == 'factor':
+      allowed_operators = [0, 1]
+    elif origin == 'termino':
+      allowed_operators = [2, 3]
+    elif origin == 'comparacion':
+      allowed_operators = [6, 5, 9, 10, 8, 7]
+    elif origin == 'union':
+      allowed_operators = [11, 12]
+    elif origin == 'asignacion':
+      allowed_operators = [4]
+  else:
+    if origin == 'factor':
+      allowed_operators = ['*', '/']
+    elif origin == 'termino':
+      allowed_operators = ['+', '-']
+    elif origin == 'comparacion':
+      allowed_operators = ['>', '<', '>=', '<=', '==', '!=']
+    elif origin == 'union':
+      allowed_operators = ['&', '|']
+    elif origin == 'asignacion':
+      allowed_operators = ['=']
+  return allowed_operators
 
+def leaving(origin):
+  allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
       operator = operators_stack.pop()
       right_operand = ids_stack.pop()
       right_operand_type = type_stack.pop()
       left_operand = ids_stack.pop()
       left_operand_type = type_stack.pop()
-      print("{} ({}) {} {} ({})".format(
-        left_operand,
-        left_operand_type,
-        operator,
-        right_operand,
-        right_operand_type,
-      ))
-      result_type = semantic_cube.cube[left_operand_type][operator][right_operand_type]
+      # print("{} ({}) {} {} ({})".format(
+      #   left_operand,
+      #   left_operand_type,
+      #   operator,
+      #   right_operand,
+      #   right_operand_type,
+      # ))
+
+      final_operator = operator
+
+      if SHOW_VIRTUAL:
+        final_operator = semantic_cube.id_to_oper[operator]
+
+      result_type = semantic_cube.cube[left_operand_type][final_operator][right_operand_type]
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
-        print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
+        # print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
         generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num'), True, result_type)
         insertCteToStructs(None, result_type)
       else:
@@ -514,8 +524,18 @@ def generateReturnQuad(megaexpresion):
         megaexpresion_return_type
       ))
 
+def isGoto(operator):
+  first_goto = semantic_cube.id_of_oper['GOTO']
+  if SHOW_VIRTUAL:
+    if type(operator) == int:
+      return operator >= first_goto
+    else:
+      return False
+  else:
+    return 'GOTO' in operator
+
 def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type):
-  if 'GOTO' in operator:
+  if isGoto(operator):
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
   else:
@@ -558,7 +578,6 @@ def addVarToVarsTable(var_type, var_id, last_var):
     final_type = last_var[:last_var.find(':')]
   dimensions, id_string = getDimensions(var_id)
   var_directory[0][id_string] = Variable(id_string, final_type, dimensions, getVirtualMemoryFrom(current_scope[0], final_type, 'id', id_string))
-
 
 def setScope(id):
   current_scope[0] = id

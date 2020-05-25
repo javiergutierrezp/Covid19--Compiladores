@@ -15,6 +15,8 @@ def main(argv):
     walker = ParseTreeWalker()
     tree = parser.programa()
     walker.walk(printer, tree)
+
+    # Print them quadsssss
     for (i, item) in enumerate(quads, start=1):
         print("{} - {}".format(i - 1, item))
 
