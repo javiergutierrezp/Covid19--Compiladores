@@ -19,6 +19,7 @@ def main(argv):
     # Print them quadsssss
     for (i, item) in enumerate(quads, start=1):
         print("{} - {}".format(i - 1, item))
+    
 
     if parser.getNumberOfSyntaxErrors() == 0:
         print("PROGRAMA CORRECTO")

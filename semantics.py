@@ -89,7 +89,7 @@ class Function:
     self.vars_table = vars_table
 
   def __repr__(self):
-    return "Function({}, {}, {}, {}, {}, {})".format(self.name, self.type, str(self.params), self.first_quad, self.size, str(self.vars_table))
+    return "Function({}, {}, {}, {}, {}, {})".format(self.name, self.type, str(self.params), self.first_quad, self.var_count, str(self.vars_table))
 
 virtual_memory = {
     'global': {
