@@ -19,6 +19,13 @@ def main(argv):
     # Print them quadsssss
     for (i, item) in enumerate(quads, start=1):
         print("{} - {}".format(i - 1, item))
+
+    # print(virtual_cte_directory)
+    # print(function_directory)
+
+    # if SHOW_VIRTUAL:
+    #     # Crear MV etc etc
+    #     print("manda llamar mv")
     
 
     if parser.getNumberOfSyntaxErrors() == 0:

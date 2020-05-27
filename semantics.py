@@ -7,7 +7,9 @@ STRING_SIZE = 6
 DATAFRAME_SIZE = 8
 
 from grammar.covid19SemanticCube import semanticCube
-from virtualmemory import MemorySegment
+from virtualmemory import getCompilationMemory
+
+compilation_memory = getCompilationMemory()
 
 class Quad:
   def __init__(self, operator, operand_left, operand_right, result_id):
@@ -91,41 +93,12 @@ class Function:
   def __repr__(self):
     return "Function({}, {}, {}, {}, {}, {})".format(self.name, self.type, str(self.params), self.first_quad, self.var_count, str(self.vars_table))
 
-virtual_memory = {
-    'global': {
-        'int': MemorySegment(0, 1800, 0),
-        'float': MemorySegment(1800, 1800, 0),
-        'char': MemorySegment(3600, 600, 0),
-        'string': MemorySegment(4200, 600, 0),
-        'Dataframe': MemorySegment(4800, 1200, 0),
-    },
-    'temporary': {
-        'int': MemorySegment(6000, 3000, 0),
-        'float': MemorySegment(9000, 3000, 0),
-        'char': MemorySegment(12000, 1000, 0),
-        'string': MemorySegment(13000, 1000, 0),
-        'Dataframe': MemorySegment(14000, 2000, 0),
-    },
-    'local': {
-        'int': MemorySegment(16000, 2700, 0),
-        'float': MemorySegment(18700, 2700, 0),
-        'char': MemorySegment(21400, 900, 0),
-        'string': MemorySegment(22300, 900, 0),
-        'Dataframe': MemorySegment(23200, 1800, 0),
-    },
-    'cte': {
-        'int': MemorySegment(25000, 2000, 0),
-        'float': MemorySegment(27000, 2000, 0),
-        'char': MemorySegment(28000, 1000, 0),
-        'string': MemorySegment(29000, 1000, 0),
-        'Dataframe': MemorySegment(30000, 1000, 0),
-    }
-}
 function_directory = {}
 params_directory = {}
 current_scope = ['principal']
 var_directory = [{}]
 cte_directory = [{}]
+virtual_cte_directory = [{}]
 quads = []
 operators_stack = []
 jump_stack = []
@@ -168,8 +141,8 @@ def incrementVarCounter(scope, var_type):
 
 def resetVarCounter(scope):
   if SHOW_VIRTUAL:
-    for key in virtual_memory[scope]:
-      virtual_memory[scope][key].used_space = 0
+    for key in compilation_memory[scope]:
+      compilation_memory[scope][key].used_space = 0
   else:
     var_counter = determineVarCounter(scope)
     var_counter[0] = VarCount(0,0,0,0,0)
@@ -209,17 +182,17 @@ def getVirtualMemoryFrom(scope, var_type, param, extra = None):
   else:
     final_scope = scope
 
-  virtual_memory_cell = None
+  compilation_memory_cell = None
   if not SHOW_VIRTUAL:
     if param == 'temp_num':
-      virtual_memory_cell = getVarCountFromType(final_scope, var_type);
+      compilation_memory_cell = getVarCountFromType(final_scope, var_type);
     elif param == 'id':
-      virtual_memory_cell = extra
+      compilation_memory_cell = extra
   else:
     # print(final_scope, var_type)
-    virtual_memory_cell = virtual_memory[final_scope][var_type].incrementUsedSpace()
-  # print(virtual_memory_cell)
-  return virtual_memory_cell
+    compilation_memory_cell = compilation_memory[final_scope][var_type].incrementUsedSpace()
+  # print(compilation_memory_cell)
+  return compilation_memory_cell
 
 ########## Cuadruplos funciones ##########
 
@@ -366,7 +339,9 @@ def forEvaluation():
 def insertCteToStructs(cte, cte_type):
   type_stack.append(cte_type)
   if cte and cte not in cte_directory[0]:
-    cte_directory[0][str(cte)] = Constant(cte, cte_type, getVirtualMemoryFrom('cte', cte_type, 'cte', cte))
+    cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte)
+    cte_directory[0][str(cte)] = Constant(cte, cte_type, cte_virtual_memory)
+    virtual_cte_directory[0][cte_virtual_memory] = Constant(cte, cte_type, cte_virtual_memory)
 
 def insertCteToStack(cte):
   if SHOW_VIRTUAL:
@@ -585,7 +560,7 @@ def setScope(id):
 def addFunctionToDirectory(function_id, function_type):
   function_directory[function_id] = Function(function_id, function_type, [], None, None, {})
   if function_type:
-    function_directory['principal'].vars_table[function_id] = Variable(function_id, function_type, {}, virtual_memory['global'][function_type].incrementUsedSpace())
+    function_directory['principal'].vars_table[function_id] = Variable(function_id, function_type, {}, compilation_memory['global'][function_type].incrementUsedSpace())
 
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
