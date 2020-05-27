@@ -1,4 +1,4 @@
-# from semantics import *
+from utils import VarCount
 
 class CompilationMemorySegment():
     def __init__(self, beginning, size, used_space = 0):
@@ -39,28 +39,29 @@ class RuntimeMemorySegment():
             self.dataframe_space[runtime_memory_index] = value
 
 class VirtualMachine():
-    def __init__(self, quads, cte_directory, functions_directory):
+    def __init__(self, quads, cte_directory, function_directory):
         self.quads = quads
         self.cte_directory = cte_directory
-        self.functions_directory = functions_directory
+        self.function_directory = function_directory
+        self.compilation_memory = getCompilationMemory()
         
         # Global memory se inicializa con "todo el espacio que tenemos para globales"
         self.global_memory = RuntimeMemorySegment(VarCount(
-            compilation_memory['global']['int'].size,
-            compilation_memory['global']['float'].size,
-            compilation_memory['global']['char'].size,
-            compilation_memory['global']['string'].size,
-            compilation_memory['global']['Dataframe'].size))
+            self.compilation_memory['global']['int'].size,
+            self.compilation_memory['global']['float'].size,
+            self.compilation_memory['global']['char'].size,
+            self.compilation_memory['global']['string'].size,
+            self.compilation_memory['global']['Dataframe'].size))
 
         # Temporary memory inicia con "todo el espacio que tenemos para temporales"
         # Cuando vamos a llamar a una función, se instancia con un espacio limitado dependiendo de ERA
         # Cuando salimos de una función, la igualamos a "todo el espacio que tenemos para temporales"
         self.temporary_memory = RuntimeMemorySegment(VarCount(
-            compilation_memory['temporary']['int'].size,
-            compilation_memory['temporary']['float'].size,
-            compilation_memory['temporary']['char'].size,
-            compilation_memory['temporary']['string'].size,
-            compilation_memory['temporary']['Dataframe'].size))
+            self.compilation_memory['temporary']['int'].size,
+            self.compilation_memory['temporary']['float'].size,
+            self.compilation_memory['temporary']['char'].size,
+            self.compilation_memory['temporary']['string'].size,
+            self.compilation_memory['temporary']['Dataframe'].size))
 
         # Local memory inicia como un arreglo vacio
         # Cada que entramos a una función, agregamos una instancia de RuntimeMemorySegment
@@ -69,89 +70,228 @@ class VirtualMachine():
         self.local_memory = []
 
     def getCte(self, virtual_memory):
+        # print("entering getCte")
+        # print(self.cte_directory)
+        # print(virtual_memory)
+        # print(virtual_memory in self.cte_directory)
+        print(self.cte_directory)
         if virtual_memory in self.cte_directory:
             return self.cte_directory[virtual_memory].value
         else:
             return None
     
     def setMemorySegmentValue(self, scope, value, runtime_memory_index, variable_type):
+        print("setMemorySegmentValue")
+        print(scope, value, runtime_memory_index, variable_type)
         if scope == 'global':
             self.global_memory.set(value, runtime_memory_index, variable_type)
         elif scope == 'local':
             self.local_memory[len(self.local_memory) - 1].set(value, runtime_memory_index, variable_type)
         elif scope == 'temporary':
             self.temporary_memory.set(value, runtime_memory_index, variable_type)
-    
-    def getValueOfOperand(self, virtual_memory):
-        runtime_memory_index, variable_type, scope = interpretVirtualMemory(virtual_memory)
-        return accessMemory(scope, runtime_memory_index, variable_type)
-    
-    def accessMemory(self, scope, runtime_index, var_type):
+
+    def accessMemory(self, virtual_memory):
+        print("Entreing access memory...")
+        runtime_memory_index, variable_type, scope = self.interpretVirtualMemory(virtual_memory)
+        print("runtime_memory_index=({})\n variable_type=({})\n scope=({})\n".format(runtime_memory_index, variable_type, scope))
+        value = None
+        if scope != 'cte':
+            # print("about to get memory")
+            memory = self.accessScopeMemory(scope, runtime_memory_index, variable_type)
+            # print("***memory***")
+            # print(memory)
+            # print("about to get value")
+            value = self.accessTypeMemory(memory, variable_type, runtime_memory_index)
+            # print("***value***")
+            # print(value)
+        else:
+            value = self.getCte(virtual_memory)
+            # print("returned value from getCte = {}".format(value))
+        return value
+
+    def accessTypeMemory(self, memory, var_type, runtime_index):
+        # print("Trying to accessTypeMemory of...")
+        # print(self.global_memory.int_space)
+        # print(runtime_index)
+        # print(memory, var_type, runtime_index)
+            
+        if var_type == 'int':
+            return memory.int_space[runtime_index]
+        elif var_type == 'float':
+            return memory.float_space[runtime_index]
+        elif var_type == 'char':
+            return memory.char_space[runtime_index]
+        elif var_type == 'string':
+            return memory.string_space[runtime_index]
+        elif var_type == 'Dataframe':
+            return memory.dataframe_space[runtime_index]
+
+    def accessScopeMemory(self, scope, runtime_index, var_type):
         # Accesar memoria...
-        print("not defined yet")
-        return 0
-
-
+        if scope == 'local':
+            # print("{}, {}".format(self.local_memory, len(self.local_memory)))
+            return self.local_memory
+            # self.accessTypeMemory('local', var_type, runtime_index)
+        elif scope == 'temporary':
+            return self.temporary_memory
+            # self.accessTypeMemory('temporary', var_type, runtime_index)
+        elif scope == 'global':
+            return self.global_memory
+            # return self.accessTypeMemory('global', var_type, runtime_index)
+        
     def execute(self):
         # Iterar por los quads
         instruction_pointer = 0
         current_quad = None
-        while instruction_pointer < len(quads) - 1:
+        while instruction_pointer < len(self.quads):
             # Leer quad
             current_quad = self.quads[instruction_pointer]
-
-            left_operand = self.getValueOfOperand(current_quad.left_operand)
-            right_operand = self.getValueOfOperand(current_quad.right_operand)
-
-            if current_quad.operator == 0:  # *
-                print("found a *")
-                self.setMemorySegmentValue()
-            elif current_quad.operator == 1:  # /
-                print("found a /")
-            elif current_quad.operator == 2:  # +
-                print("found a +")
-            elif current_quad.operator == 3:  # -
-                print("found a -")
+            if current_quad.operator >= 0 and current_quad.operator <= 10 and current_quad.operator != 4: # Arithmetic operation
+                left_operand = self.accessMemory(current_quad.left_operand)
+                right_operand = self.accessMemory(current_quad.right_operand)
+                destination_runtime_memory_index,\
+                destination_variable_type,\
+                destination_scope = self.interpretVirtualMemory(current_quad.result_id)
+                print("left = {}".format(left_operand))
+                print("right = {}".format(right_operand))
+                if current_quad.operator == 0:  # *
+                    print("found a *")
+                    computed_value = left_operand * right_operand
+                elif current_quad.operator == 1:  # /
+                    print("found a /")
+                    computed_value = left_operand / right_operand
+                elif current_quad.operator == 2:  # +
+                    print("found a +")
+                    # print(left_operand, right_operand)
+                    computed_value = left_operand + right_operand
+                elif current_quad.operator == 3:  # -
+                    print("found a -")
+                    computed_value = left_operand - right_operand
+                elif current_quad.operator == 5:  # <
+                    print("found a <")
+                    computed_value = boolToInt(left_operand < right_operand)
+                elif current_quad.operator == 6:  # >
+                    print("found a >")
+                    computed_value = boolToInt(left_operand > right_operand)
+                elif current_quad.operator == 7:  # !=
+                    print("found a !=")
+                    computed_value = boolToInt(left_operand != right_operand)
+                elif current_quad.operator == 8:  # ==
+                    print("found a ==")
+                    computed_value = boolToInt(left_operand == right_operand)
+                elif current_quad.operator == 9:  # >=
+                    print("found a >=")
+                    computed_value = boolToInt(left_operand >= right_operand)
+                elif current_quad.operator == 10: # <=
+                    print("found a <=")
+                    computed_value = boolToInt(left_operand <= right_operand)
+                elif current_quad.operator == 11: # AND
+                    print("found a AND")
+                    current_value = boolToInt(left_operand and right_operand)
+                elif current_quad.operator == 12: # OR
+                    print("found a OR")
+                    current_value = boolToInt(left_operand or right_operand)
+                print("computed value = {}".format(computed_value))
+                self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
             elif current_quad.operator == 4:  # =
                 print("found a =")
-            elif current_quad.operator == 5:  # <
-                print("found a <")
-            elif current_quad.operator == 6:  # >
-                print("found a >")
-            elif current_quad.operator == 7:  # !=
-                print("found a !=")
-            elif current_quad.operator == 8:  # ==
-                print("found a ==")
-            elif current_quad.operator == 9:  # >=
-                print("found a >=")
-            elif current_quad.operator == 10: # <=
-                print("found a <=")
-            elif current_quad.operator == 11: # AND
-                print("found a AND")
-            elif current_quad.operator == 12: # OR
-                print("found a OR")
-            elif current_quad.operator == 13: # Goto
-                print("found a Goto")
-            elif current_quad.operator == 14: # GotoV
-                print("found a GotoV")
-            elif current_quad.operator == 15: # GotoF
-                print("found a GotoF")
+                left_operand = self.accessMemory(current_quad.left_operand)
+                computed_value = left_operand
+                destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(current_quad.result_id)
+                print(destination_runtime_memory_index, destination_variable_type, destination_scope)
+                print("left = {}".format(left_operand))
+                print("computed_value = {}".format(computed_value))
+                self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
+            else:
+                if current_quad.operator == 13: # Goto
+                    print("found a Goto")
+                elif current_quad.operator == 14: # GotoV
+                    print("found a GotoV")
+                elif current_quad.operator == 15: # GotoF
+                    print("found a GotoF")
+            instruction_pointer += 1
+        printNotNone(self.global_memory.int_space)
+        printNotNone(self.global_memory.float_space)
+        printNotNone(self.local_memory)
+        printNotNone(self.temporary_memory.int_space)
+        printNotNone(self.temporary_memory.float_space)
         return 0;
-# Determinar que operacion es
-# Dependiendo de la operacion, lo que hacemos...
 
-def interpretVirtualMemory(virtual_memory):
-    runtime_memory_index = None
-    variable_type = None
-    scope = None
+    def determineScope(self, virtual_memory):
+        scope = None
+        # print(virtual_memory, self.compilation_memory['local']['int'])
+        # print(type(virtual_memory), self.compilation_memory['local']['int'].beginning)
+        if virtual_memory >= self.compilation_memory['cte']['int'].beginning:
+            scope = 'cte'
+        elif virtual_memory >= self.compilation_memory['local']['int'].beginning:
+            scope = 'local'
+        elif virtual_memory >= self.compilation_memory['temporary']['int'].beginning:
+            scope = 'temporary'
+        elif virtual_memory >= self.compilation_memory['global']['int'].beginning:
+            scope = 'global'
+        return scope
 
-    return runtime_memory_index, variable_type, scope
+    def determineRuntimeIndex(self, virtual_memory, scope_floor, variable_floor):
+        print(virtual_memory, scope_floor, variable_floor)
+        runtime_memory_index = None
+        runtime_memory_index = virtual_memory % scope_floor if scope_floor != 0 else virtual_memory
+        runtime_memory_index = runtime_memory_index % variable_floor if variable_floor != 0 else virtual_memory
+        print(runtime_memory_index)
+        return runtime_memory_index
 
+    def determineType(self, virtual_memory, scope):
+        print("determineType...")
+        print(virtual_memory)
+        print(self.compilation_memory)
+        var_type = None
+        if virtual_memory < self.compilation_memory[scope]['int'].beginning + self.compilation_memory[scope]['int'].size:
+            var_type = 'int'
+            print("found int")
+        elif virtual_memory < self.compilation_memory[scope]['float'].beginning + self.compilation_memory[scope]['float'].size:
+            var_type = 'float'
+            print("found float")
+        elif virtual_memory < self.compilation_memory[scope]['char'].beginning + self.compilation_memory[scope]['char'].size:
+            var_type = 'char'
+            print("found char")
+        elif virtual_memory < self.compilation_memory[scope]['string'].beginning + self.compilation_memory[scope]['string'].size:
+            var_type = 'string'
+            print("found string")
+        elif virtual_memory < self.compilation_memory[scope]['Dataframe'].beginning + self.compilation_memory[scope]['Dataframe'].size:
+            var_type = 'Dataframe'
+            print("found Dataframe")
+        return var_type
+
+    def interpretVirtualMemory(self, virtual_memory):
+        if virtual_memory != None:
+            print("Entering interpretVirtualMemory -> {}".format(virtual_memory))
+            compilation_memory = getCompilationMemory()
+            runtime_memory_index = None
+            variable_type = None
+            scope = None
+
+            # print("determineScope({},\n {},\n {})".format(virtual_memory, compilation_memory, compilation_memory))
+            scope = self.determineScope(virtual_memory)
+            variable_type = self.determineType(virtual_memory, scope)
+            runtime_memory_index = self.determineRuntimeIndex(virtual_memory,
+            self.compilation_memory[scope]['int'].beginning,
+            self.compilation_memory[scope][variable_type].beginning)
+            return runtime_memory_index, variable_type, scope
+        else:
+            return None
+    
+def boolToInt(operation):
+    if operation:
+        return 1
+    else:
+        return 0
 # * global (donde estamos por default) -> Con toño
 # * stack de memorias? para siempre utilizar la final...
 # * local (para funciones) -> ERA
 # * cte (en todas partes...) -> Expandirla dependiendo de ERA
 # * temporal (en todas partes...) -> Inicializarla desde el inicio
+
+def printNotNone(list):
+    print([x for x in list if x is not None])
 
 def getScopeMemory(base, total_space):
     floor = base
@@ -173,7 +313,7 @@ def getScopeMemory(base, total_space):
 
     floor += ceil
     ceil = total_space * .2
-    scope_memory['DataFrame'] = CompilationMemorySegment(floor, ceil, 0)
+    scope_memory['Dataframe'] = CompilationMemorySegment(floor, ceil, 0)
     floor += ceil
     return floor, scope_memory
 
