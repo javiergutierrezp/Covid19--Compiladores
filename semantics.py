@@ -86,7 +86,6 @@ def getVirtualOperator(operator):
   else:
     return operator
 
-
 def determineVarCounter(scope):
   final_var_counter = None
   if scope == 'global':
@@ -213,20 +212,20 @@ def receivedFunctionParameters(function_name):
       # print("Evaluating i={}".format(i))
       # print(definition_param.type, given_param_type)
       
-      if definition_param.dimensions != {}:
-        given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
-        # print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
+      # if definition_param.dimensions != {}:
+      #   given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
+      #   # print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
 
-        if definition_param.dimensions != given_param_dimensions:
-          raise EnvironmentError("""
-            Given argument does not match the 
-            parameter dimension of function '{}' - the argument #{} 
-            does not have the same dimensions as the parameter declared
-            in the function definition
-          """.format(
-            function_name,
-            i + 1,
-          ))
+      #   if definition_param.dimensions != given_param_dimensions:
+      #     raise EnvironmentError("""
+      #       Given argument does not match the 
+      #       parameter dimension of function '{}' - the argument #{} 
+      #       does not have the same dimensions as the parameter declared
+      #       in the function definition
+      #     """.format(
+      #       function_name,
+      #       i + 1,
+      #     ))
 
       if definition_param.type != given_param_type:
         raise EnvironmentError("""
@@ -242,10 +241,10 @@ def receivedFunctionParameters(function_name):
   received_param_counter[0] = 0
 
 def insertERASize(function_name):
-  generateAndAppendQuad("ERA", function_name, None, None, False, None)
+  generateAndAppendQuad(getVirtualOperator("ERA"), function_name, None, None, False, None)
 
 def insertGOSUB(function_name):
-  generateAndAppendQuad("GOSUB", function_name, None, None, False, None)
+  generateAndAppendQuad(getVirtualOperator("GOSUB"), function_name, None, None, False, None)
   # Sólo si la función que estamos llamando regresa algo, hacemos el buen
   # PARCHE GUADALUPANO WUWUWUW
   if function_name in function_directory['principal'].vars_table:
@@ -322,14 +321,14 @@ def insertCteToStack(cte):
 def insertIdToStack(identificator):
   # print('insertIdToStack {}'.format(identificator))
   # Busca en donde está esta variable...
-  if identificator in function_directory['principal'].vars_table: # Global
+  if identificator in function_directory[current_scope[0]].vars_table: # Current scope
+    type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
+    ids_stack.append(function_directory[current_scope[0]].vars_table[identificator].memory_cell)
+  elif identificator in function_directory['principal'].vars_table: # Global
     type_stack.append(function_directory['principal'].vars_table[identificator].type)
     # print("************* ")
     # print(function_directory['principal'].vars_table[identificator])
     ids_stack.append(function_directory['principal'].vars_table[identificator].memory_cell)
-  elif identificator in function_directory[current_scope[0]].vars_table: # Current scope
-    type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
-    ids_stack.append(function_directory[current_scope[0]].vars_table[identificator].memory_cell)
   else:
     raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
     quit()
@@ -404,15 +403,15 @@ def leaving(origin):
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
 def readId(identificator):
-  generateAndAppendQuad('lee', identificator, None, getVirtualMemoryFrom('temporary', "string", 'temp_num'), False, "string")
+  generateAndAppendQuad(getVirtualOperator('LEE'), identificator, None, getVirtualMemoryFrom('temporary', "string", 'temp_num'), False, "string")
   type_stack.pop()
 
 def write(id_or_cte):
   #TODO: Necesitamos traducir estas id's y CTE's a memory cells
   if id_or_cte:
-    generateAndAppendQuad('escribe', id_or_cte, None, None, False, "string")
+    generateAndAppendQuad(getVirtualOperator('ESCRIBE'), id_or_cte, None, None, False, "string")
   else:
-    generateAndAppendQuad('escribe', ids_stack.pop(), None, None, False, "string")
+    generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop(), None, None, False, "string")
   type_stack.pop()
 
 def incrementTempCounter(var_type):
@@ -459,7 +458,14 @@ def generateReturnQuad(megaexpresion):
     # print("assigning...")
     return_value = megaexpresion
   if (megaexpresion_return_type == function_directory['principal'].vars_table[current_scope[0]].type):
-    generateAndAppendQuad('RETURN', None, None, return_value, False, megaexpresion_return_type)
+    final_return = None
+    if type(return_value) == int: #Memory cell return
+      print("CTE (Memory cell) return {}".format(return_value))
+      final_return = return_value
+    else: #id return
+      print("ID return {}".format(return_value))
+      final_return = function_directory[current_scope[0]].vars_table[return_value].memory_cell
+    generateAndAppendQuad(getVirtualOperator('REGRESA'), None, None, final_return, False, megaexpresion_return_type)
   else:
     raise EnvironmentError("""
         The return type the function '{}' expected was '{}' but received '{}'.
@@ -480,7 +486,9 @@ def isGoto(operator):
     return 'GOTO' in operator
 
 def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type):
-  if isGoto(operator):
+  if 'REGRESA' == operator:
+    import pdb; pdb.set_trace()
+  elif isGoto(operator):
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
   else:
@@ -526,6 +534,8 @@ def addVarToVarsTable(var_type, var_id, last_var):
 
 def setScope(id):
   current_scope[0] = id
+  if id == 'principal':
+    function_directory['principal'].first_quad = len(quads)
 
 def addFunctionToDirectory(function_id, function_type):
   function_directory[function_id] = Function(function_id, function_type, [], None, None, {})
@@ -583,4 +593,4 @@ def reachedFunctionDefinitionEnd(id):
   # Release varstable
   function_directory[id].vars_table = {}
   # Generate ENDFUNC quad
-  generateAndAppendQuad('ENDFUNC', None, None, None, False, None)
+  generateAndAppendQuad(getVirtualOperator('ENDFUNC'), None, None, None, False, None)

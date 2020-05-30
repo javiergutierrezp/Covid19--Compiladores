@@ -17,20 +17,18 @@ def main(argv):
     tree = parser.programa()
     walker.walk(printer, tree)
 
-    # Print them quadsssss
-    for (i, item) in enumerate(quads, start=1):
-        print("{} - {}".format(i - 1, item))
-
-    # print(virtual_cte_directory)
-    # print(function_directory)
-
-    if SHOW_VIRTUAL:
-        # Crear MV etc etc
-        virtual_machine = VirtualMachine(quads, virtual_cte_directory[0], function_directory)
-        virtual_machine.execute()    
-
     if parser.getNumberOfSyntaxErrors() == 0:
-        print("PROGRAMA CORRECTO")
+        # Print them quadsssss
+        for (i, item) in enumerate(quads, start=1):
+            print("{} - {}".format(i - 1, item))
+
+        # print(virtual_cte_directory)
+        # print(function_directory)
+
+        if SHOW_VIRTUAL:
+            # Crear MV etc etc
+            virtual_machine = VirtualMachine(quads, virtual_cte_directory[0], function_directory)
+            virtual_machine.execute()    
     else:
         print("error!")
         exit(1)

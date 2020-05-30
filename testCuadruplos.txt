@@ -11,6 +11,8 @@ funcion int javi (float : h, char : b[4][2], int : c[10][20]);
 var
 Dataframe : wazabe;
 {
+   x = 1;
+   c = 5;
    escribe("hello");
    g = x + c;
    regresa (x + c);
@@ -20,12 +22,14 @@ funcion int emilio (int : h, char : b[4][2], int : c[10][20]);
 var
 Dataframe : wazabe;
 {
+   x = 1;
+   c = 5;
    escribe("hello");
    g = x + c;
-   regresa (javi(g2,z,a));
+   regresa (c);
 }
 
 principal () 
 {
-   emilio(1, z, a)
-}
+   emilio(1, z, a);
+};

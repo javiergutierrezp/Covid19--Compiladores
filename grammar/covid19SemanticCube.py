@@ -426,7 +426,13 @@ class semanticCube():
             12 : 'OR',
             13 : 'Goto',
             14 : 'GotoV',
-            15 : 'GotoF'
+            15 : 'GotoF',
+            16 : 'GOSUB',
+            17 : 'ERA',
+            18 : 'ENDFUNC',
+            19 : 'LEE',
+            20 : 'ESCRIBE',
+            21 : 'REGRESA',
         }
 
         self.id_of_oper = {
@@ -445,5 +451,11 @@ class semanticCube():
             'OR' : 12,
             'GOTO' : 13,
             'GOTOV' : 14,
-            'GOTOF' : 15
+            'GOTOF' : 15,
+            'GOSUB' : 16,
+            'ERA' : 17,
+            'ENDFUNC' : 18,
+            'LEE' : 19,
+            'ESCRIBE' : 20,
+            'REGRESA' : 21
         }
