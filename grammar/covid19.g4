@@ -88,8 +88,6 @@ lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA i
 escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}))* PARENTESISD
           ;
 
-// En escritura estamos aceptando cualquier cte como letrero, atacar con semantica?
-
 megaexpresion : superexpresion {leaving('union')} ((Y {insertOperator($Y.text)} | O {insertOperator($O.text)}) superexpresion {leaving('union')})*
               ;
 

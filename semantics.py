@@ -204,30 +204,13 @@ def receivedFunctionParameters(function_name):
       received_param_counter[0]
     ))
   for i in range(0, len(function_directory[function_name].params)):
-      definition_param = function_directory[function_name].params[
+      definition_param_type = function_directory[function_name].params[
         len(function_directory[function_name].params) - 1 - i
-      ]
-      given_param_type = type_stack[type_stack_len - 1 - i]
+      ].type
+      given_param_type = type_stack.pop()
+      ids_stack.pop()
 
-      # print("Evaluating i={}".format(i))
-      # print(definition_param.type, given_param_type)
-      
-      # if definition_param.dimensions != {}:
-      #   given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
-      #   # print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
-
-      #   if definition_param.dimensions != given_param_dimensions:
-      #     raise EnvironmentError("""
-      #       Given argument does not match the 
-      #       parameter dimension of function '{}' - the argument #{} 
-      #       does not have the same dimensions as the parameter declared
-      #       in the function definition
-      #     """.format(
-      #       function_name,
-      #       i + 1,
-      #     ))
-
-      if definition_param.type != given_param_type:
+      if definition_param_type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 
           parameter types of function '{}' - the argument #{} 
@@ -375,6 +358,7 @@ def getAllowedOperators(origin):
 def leaving(origin):
   allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
+      print("leaving_origin: {}\n type_stack: {}\n ids_stack: {}".format(origin, type_stack,ids_stack))
       operator = operators_stack.pop()
       right_operand = ids_stack.pop()
       right_operand_type = type_stack.pop()
@@ -392,7 +376,6 @@ def leaving(origin):
 
       if SHOW_VIRTUAL:
         final_operator = semantic_cube.id_to_oper[operator]
-
       result_type = semantic_cube.cube[left_operand_type][final_operator][right_operand_type]
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
@@ -409,11 +392,17 @@ def readId(identificator):
 
 def write(id_or_cte):
   #TODO: Necesitamos traducir estas id's y CTE's a memory cells
-  if id_or_cte:
-    generateAndAppendQuad(getVirtualOperator('ESCRIBE'), id_or_cte, None, None, False, "string")
-  else:
-    generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop(), None, None, False, "string")
-  type_stack.pop()
+  # Determinar si es una variable o un string
+  if id_or_cte[0] == "'" or id_or_cte[0] == '"': # String
+    generateAndAppendQuad(getVirtualOperator('ESCRIBE'), cte_directory[0][id_or_cte].memory_cell, None, None, False, "string")
+    type_stack.pop()
+  else: # id
+    if id_or_cte in function_directory[current_scope[0]].vars_table: #local
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory[current_scope[0]].vars_table[id_or_cte].memory_cell, None, None, False, "string")
+    elif id_or_cte in function_directory['principal'].vars_table: #global
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory['principal'].vars_table[id_or_cte].memory_cell, None, None, False, "string")
+    else: #no existe
+      raise EnvironmentError("The ID {}, that was intended to be written, was not found. Perhaps it hasn't been declared yet?".format(id_or_cte))
 
 def incrementTempCounter(var_type):
   if(var_type == "string"):
@@ -436,8 +425,8 @@ def generateReturnQuad(megaexpresion):
     # print(quads)
     # print(ids_stack)
     # print(type_stack)
-    return_value = ids_stack[len(ids_stack) - 1]
-    megaexpresion_return_type = type_stack[len(type_stack) - 1]
+    return_value = ids_stack.pop()
+    megaexpresion_return_type = type_stack.pop()
   elif ('(' in megaexpresion): # Function
     called_function = megaexpresion[: megaexpresion.find('(')]
     megaexpresion_return_type = function_directory['principal'].vars_table[called_function].type
@@ -460,12 +449,15 @@ def generateReturnQuad(megaexpresion):
     return_value = megaexpresion
   if (megaexpresion_return_type == function_directory['principal'].vars_table[current_scope[0]].type):
     final_return = None
-    if type(return_value) == int: #Memory cell return
-      print("CTE (Memory cell) return {}".format(return_value))
+    if SHOW_VIRTUAL:
+      if type(return_value) == int: #Memory cell return
+        print("CTE (Memory cell) return {}".format(return_value))
+        final_return = return_value
+      else: #id return
+        print("ID return {}".format(return_value))
+        final_return = function_directory[current_scope[0]].vars_table[return_value].memory_cell
+    else:
       final_return = return_value
-    else: #id return
-      print("ID return {}".format(return_value))
-      final_return = function_directory[current_scope[0]].vars_table[return_value].memory_cell
     generateAndAppendQuad(getVirtualOperator('REGRESA'), current_scope[0], None, final_return, False, megaexpresion_return_type)
   else:
     raise EnvironmentError("""
