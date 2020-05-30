@@ -86,7 +86,6 @@ class VirtualMachine():
         if scope == 'global':
             self.global_memory.set(value, runtime_memory_index, variable_type)
         elif scope == 'local':
-            # import pdb; pdb.set_trace()
             self.local_memory[len(self.local_memory) - 1].set(value, runtime_memory_index, variable_type)
         elif scope == 'temporary':
             self.temporary_memory.set(value, runtime_memory_index, variable_type)
@@ -139,7 +138,7 @@ class VirtualMachine():
         elif scope == 'global':
             return self.global_memory
             # return self.accessTypeMemory('global', var_type, runtime_index)
-        
+
     def execute(self):
         # Iterar por los quads
         instruction_pointer = 0
@@ -200,7 +199,10 @@ class VirtualMachine():
                 instruction_pointer += 1
             elif current_quad.operator == 4:  # =
                 # print("found a =")
-                left_operand = self.accessMemory(current_quad.left_operand)
+                if type(current_quad.left_operand) == int:
+                    left_operand = self.accessMemory(current_quad.left_operand)
+                else:
+                    left_operand = self.accessMemory(self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell)
                 computed_value = left_operand
                 destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(current_quad.result_id)
                 # print(destination_runtime_memory_index, destination_variable_type, destination_scope)
@@ -222,7 +224,6 @@ class VirtualMachine():
                     else:
                         instruction_pointer += 1
                 elif current_quad.operator == 15: # GotoF
-                    # pdb.set_trace()
                     condition = self.accessMemory(current_quad.left_operand)
                     if condition == 0:
                         instruction_pointer = current_quad.result_id
@@ -238,6 +239,7 @@ class VirtualMachine():
                     instruction_pointer += 1
                 elif current_quad.operator == 18: # ENDFUNC
                     #Update the current memory(????????)
+                    # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
                     self.local_memory.pop()
                     instruction_pointer = previousIP_stack.pop()
                 elif current_quad.operator == 19: # LEE
@@ -254,15 +256,15 @@ class VirtualMachine():
                     instruction_pointer += 1
                 elif current_quad.operator == 21: # REGRESA
                     computed_value = self.accessMemory(current_quad.result_id)
-                    print("VALOR DE REGRESA: {}".format(computed_value))
+                    function_memory_cell = self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell
+                    destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(function_memory_cell)
+                    self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                     instruction_pointer += 1
-                    
-
-        printNotNone(self.global_memory.int_space)
-        printNotNone(self.global_memory.float_space)
-        printNotNone(self.local_memory)
-        printNotNone(self.temporary_memory.int_space)
-        printNotNone(self.temporary_memory.float_space)
+        printNotNone("global_memory.int_space", self.global_memory.int_space)
+        printNotNone("global_memory.float_space", self.global_memory.float_space)
+        printNotNone("local_memory", self.local_memory)
+        printNotNone("temporary_memory.int_space", self.temporary_memory.int_space)
+        printNotNone("temporary_memory.float_space", self.temporary_memory.float_space)
         return 0;
 
     def determineScope(self, virtual_memory):
@@ -338,8 +340,9 @@ def boolToInt(operation):
 # * cte (en todas partes...) -> Expandirla dependiendo de ERA
 # * temporal (en todas partes...) -> Inicializarla desde el inicio
 
-def printNotNone(list):
-    print([x for x in list if x is not None])
+def printNotNone(name, list):
+    print(name)
+    print(['({}: {})'.format(idx,x) for (idx, x) in enumerate(list) if x is not None])
 
 def getScopeMemory(base, total_space):
     floor = base

@@ -296,6 +296,7 @@ def forEvaluation():
   jump_stack.append(len(quads) - 1)
   generateAndAppendQuad(getVirtualOperator('GOTOV'), ids_stack.pop(), None, None, False, None)
   jump_stack.append(len(quads) - 1)
+  type_stack.pop()
 
 ########## Cuadruplos estatutos lineales ##########
 
@@ -465,7 +466,7 @@ def generateReturnQuad(megaexpresion):
     else: #id return
       print("ID return {}".format(return_value))
       final_return = function_directory[current_scope[0]].vars_table[return_value].memory_cell
-    generateAndAppendQuad(getVirtualOperator('REGRESA'), None, None, final_return, False, megaexpresion_return_type)
+    generateAndAppendQuad(getVirtualOperator('REGRESA'), current_scope[0], None, final_return, False, megaexpresion_return_type)
   else:
     raise EnvironmentError("""
         The return type the function '{}' expected was '{}' but received '{}'.
@@ -483,12 +484,10 @@ def isGoto(operator):
     else:
       return False
   else:
-    return 'GOTO' in operator
+    return 'GOTO' in operator or 'REGRESA' in operator
 
 def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type):
-  if 'REGRESA' == operator:
-    import pdb; pdb.set_trace()
-  elif isGoto(operator):
+  if isGoto(operator):
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
   else:

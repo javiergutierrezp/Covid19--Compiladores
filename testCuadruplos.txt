@@ -22,6 +22,7 @@ funcion int emilio (int : h, char : b[4][2], int : c[10][20]);
 var
 Dataframe : wazabe;
 {
+   h = 16;
    x = 1;
    c = 5;
    escribe("hello");
