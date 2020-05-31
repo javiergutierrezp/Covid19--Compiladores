@@ -22,7 +22,7 @@ int : k;
     si (j==1) entonces
     {regresa (j);}
     sino
-    {regresa (j * 4);}
+    {regresa (7 * 4);}
 }
 
 funcion inicial (int : y);

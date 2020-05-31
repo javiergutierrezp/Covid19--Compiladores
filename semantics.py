@@ -1,4 +1,4 @@
-SHOW_VIRTUAL = True
+SHOW_VIRTUAL = False
 
 INT_SIZE = 2
 FLOAT_SIZE = 4
@@ -187,9 +187,6 @@ def incrementReceivedParamCounter():
   received_param_counter[0] += 1
 
 def receivedFunctionParameters(function_name):
-  # print("receivedFunctionParameters")
-  # print(function_directory[function_name])
-  # print(type_stack)
   temp_vars_table = {}
   type_stack_len = len(type_stack)
   ids_stack_len = len(ids_stack)
@@ -224,6 +221,7 @@ def receivedFunctionParameters(function_name):
           given_param_type
         ))
   received_param_counter[0] = 0
+  
 
 def insertERASize(function_name):
   generateAndAppendQuad(getVirtualOperator("ERA"), function_name, None, None, False, None)
@@ -279,7 +277,6 @@ def forEvaluation():
   ids_stack.append(last_quad.result_id)
   leaving('comparacion')
   jump_stack.append(len(quads) - 1)
-  
   generateAndAppendQuad(getVirtualOperator('GOTOV'), ids_stack.pop(), None, None, False, None)
   jump_stack.append(len(quads) - 1)
   type_stack.pop()
@@ -288,7 +285,6 @@ def forEvaluation():
 
 def insertCteToStructs(cte, cte_type):
   type_stack.append(cte_type)
-  print("type_stackinsertCteToStructs")
   if cte not in cte_directory[0]: # No existe...
     cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte)
     value = cte
@@ -301,7 +297,7 @@ def insertCteToStructs(cte, cte_type):
     virtual_cte_directory[0][cte_virtual_memory] = Constant(value, cte_type, cte_virtual_memory)
   else: # Si existe, ocupamos buscarla...
     cte_virtual_memory = cte_directory[0][cte].memory_cell
-  print("insertCteToStack")
+  
   if SHOW_VIRTUAL:
     ids_stack.append(cte_virtual_memory)
   else:
@@ -361,28 +357,24 @@ def getAllowedOperators(origin):
   return allowed_operators
 
 def leaving(origin):
+  print("***BEFORE***")
+  print(type_stack, len(type_stack))
+  print(ids_stack, len(ids_stack))
+  print(origin)
+  if len(type_stack) != len(ids_stack):
+    import pdb; pdb.set_trace()
   allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
-      # print("leaving_origin: {}\n type_stack: {}\n ids_stack:{} \n quads:\n".format(origin, type_stack,ids_stack))
-      # printQuads(quads)
-      # print("\n")
       operator = operators_stack.pop()
       right_operand = ids_stack.pop()
       right_operand_type = type_stack.pop()
       left_operand = ids_stack.pop()
       left_operand_type = type_stack.pop()
-      # print("{} ({}) {} {} ({})".format(
-      #   left_operand,
-      #   left_operand_type,
-      #   operator,
-      #   right_operand,
-      #   right_operand_type,
-      # ))
 
       final_operator = operator
-
       if SHOW_VIRTUAL:
         final_operator = semantic_cube.id_to_oper[operator]
+
       result_type = semantic_cube.cube[left_operand_type][final_operator][right_operand_type]
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
@@ -391,6 +383,9 @@ def leaving(origin):
         generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num'), True, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
+  print("***AFTER***")
+  print(type_stack, len(type_stack))
+  print(ids_stack, len(ids_stack))
 
 def readId(identificator):
   if SHOW_VIRTUAL:
@@ -408,8 +403,6 @@ def readId(identificator):
 def write(id_or_cte):
   #TODO: Necesitamos traducir estas id's y CTE's a memory cells
   # Determinar si es una variable o un string
-  print(type_stack, len(type_stack))
-  print(ids_stack, len(ids_stack))
   if not id_or_cte: # expresion
     generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop(), None, None, False, "string")
     type_stack.pop()
