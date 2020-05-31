@@ -4,6 +4,17 @@ int: a;
 int: b[4], c[6];
 int: d;
 
+funcion int emilio ();
+var
+int: x;
+int: y[4];
+int: a;
+float: z[6];
+float: b;
+{
+    escribe("dimeloooou");
+}
+
 principal() {
     escribe("holaaa");
 }

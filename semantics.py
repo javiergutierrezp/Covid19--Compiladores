@@ -587,6 +587,7 @@ def reachedFunctionDefinitionEnd(id):
   # Save ERA Size on function_directory
   function_directory[id].var_count = getVarCountFromVarsTable(function_directory[id].vars_table) + temp_var_counter[0]
   # Release varstable
+  import pdb; pdb.set_trace()
   function_directory[id].vars_table = {}
   # Generate ENDFUNC quad
   generateAndAppendQuad(getVirtualOperator('ENDFUNC'), None, None, None, False, None)
