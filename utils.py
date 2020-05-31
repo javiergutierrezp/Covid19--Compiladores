@@ -36,6 +36,6 @@ class VarCount:
       self.dataframe_type,
     )
 
-def printQuads(quads):
+def pq(quads):
   for (idx, quad) in enumerate(quads):
       print("{} - {}".format(idx, quad))

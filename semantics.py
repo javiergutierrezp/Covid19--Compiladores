@@ -1,4 +1,4 @@
-SHOW_VIRTUAL = False
+SHOW_VIRTUAL = True
 
 INT_SIZE = 2
 FLOAT_SIZE = 4
@@ -8,7 +8,7 @@ DATAFRAME_SIZE = 8
 
 from grammar.covid19SemanticCube import semanticCube
 from virtualmemory import getCompilationMemory
-from utils import VarCount, printQuads
+from utils import VarCount, pq
 
 compilation_memory = getCompilationMemory()
 
@@ -273,7 +273,10 @@ def addGotoEnd(origin):
 def forEvaluation():
   last_quad = quads[len(quads) - 1]
   type_stack.append('int')
-  operators_stack.append('==')
+  if SHOW_VIRTUAL:
+    operators_stack.append(8)
+  else:  
+    operators_stack.append('==')
   ids_stack.append(last_quad.result_id)
   leaving('comparacion')
   jump_stack.append(len(quads) - 1)
@@ -357,12 +360,6 @@ def getAllowedOperators(origin):
   return allowed_operators
 
 def leaving(origin):
-  print("***BEFORE***")
-  print(type_stack, len(type_stack))
-  print(ids_stack, len(ids_stack))
-  print(origin)
-  if len(type_stack) != len(ids_stack):
-    import pdb; pdb.set_trace()
   allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
       operator = operators_stack.pop()
@@ -383,22 +380,17 @@ def leaving(origin):
         generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num'), True, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
-  print("***AFTER***")
-  print(type_stack, len(type_stack))
-  print(ids_stack, len(ids_stack))
 
 def readId(identificator):
-  if SHOW_VIRTUAL:
-    if identificator in function_directory[current_scope[0]].vars_table: #local
-      generateAndAppendQuad(getVirtualOperator('LEE'), function_directory[current_scope[0]].vars_table[identificator].memory_cell, None, None, False, "string")
-    elif identificator in function_directory['principal'].vars_table: #global
-      generateAndAppendQuad(getVirtualOperator('LEE'), function_directory['principal'].vars_table[identificator].memory_cell, None, None, False, "string")
-    else: #no existe
-      raise EnvironmentError("The ID {}, that was intended to be received in 'lee()', was not found. Perhaps it hasn't been declared yet?".format(id_or_cte))
-  else:
-    generateAndAppendQuad(getVirtualOperator('LEE'), identificator, None, None, False, "string")
-  
-  type_stack.pop()
+  if identificator in function_directory[current_scope[0]].vars_table: #local
+    id_type = function_directory[current_scope[0]].vars_table[identificator].type
+    generateAndAppendQuad(getVirtualOperator('LEE'), function_directory[current_scope[0]].vars_table[identificator].memory_cell, None, None, False, id_type)
+  elif identificator in function_directory['principal'].vars_table: #global
+    id_type = function_directory['principal'].vars_table[identificator].type
+    generateAndAppendQuad(getVirtualOperator('LEE'), function_directory['principal'].vars_table[identificator].memory_cell, None, None, False, id_type)
+  else: #no existe
+    raise EnvironmentError("The ID {}, that was intended to be received in 'lee()', was not found. Perhaps it hasn't been declared yet?".format(identificator))
+
 
 def write(id_or_cte):
   #TODO: Necesitamos traducir estas id's y CTE's a memory cells
@@ -435,36 +427,18 @@ def incrementTempCounter(var_type):
       return DATAFRAME_SIZE
 
 def generateReturnQuad(megaexpresion):
-  # print(megaexpresion)
   megaexpresion_return_type = None
   return_value = None
   if (any(operator in megaexpresion for operator in operators)): # Operation
-    # print("operation found")
-    # print(quads)
-    # print(ids_stack)
-    # print(type_stack)
     return_value = ids_stack.pop()
     megaexpresion_return_type = type_stack.pop()
   elif ('(' in megaexpresion): # Function
-    called_function = megaexpresion[: megaexpresion.find('(')]
-    megaexpresion_return_type = function_directory['principal'].vars_table[called_function].type
-    return_value = called_function
+    megaexpresion_return_type = type_stack.pop()
+    return_value = ids_stack.pop()
   else: # CTE or ID
-    # print("cte or id found")
-    if (megaexpresion in cte_directory): #cte
-      # print("it's a constantttt")
-      megaexpresion_return_type = cte_directory[megaexpresion].type
-    elif (megaexpresion in function_directory[current_scope[0]].vars_table):
-      # print("it's a local id")
-      megaexpresion_return_type = function_directory[current_scope[0]].vars_table[megaexpresion].type
-    elif (megaexpresion in function_directory['principal'].vars_table):
-      # print("it's a global id")
-      megaexpresion_return_type = function_directory['principal'].vars_table[megaexpresion].type
-    else:
-      raise EnvironmentError("The CTE or ID that was intended to return was not found. Perhaps it hasn't been declared yet?")
-      quit()
-    # print("assigning...")
-    return_value = megaexpresion
+    # import pdb; pdb.set_trace()
+    megaexpresion_return_type = type_stack.pop()
+    return_value = ids_stack.pop()
   if (megaexpresion_return_type == function_directory['principal'].vars_table[current_scope[0]].type):
     final_return = None
     if SHOW_VIRTUAL:

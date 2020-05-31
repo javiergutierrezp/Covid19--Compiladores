@@ -6,7 +6,7 @@ from grammar.covid19Listener import covid19Listener
 from antlr4.tree.Trees import Trees
 from semantics import *
 from virtualmemory import *
-from utils import printQuads
+from utils import pq
 
 def main(argv):
     input_stream = FileStream(argv[1])
@@ -20,7 +20,7 @@ def main(argv):
 
     if parser.getNumberOfSyntaxErrors() == 0:
         # Print them quadsssss
-        printQuads(quads)
+        pq(quads)
 
         # print(virtual_cte_directory)
         # print(function_directory)

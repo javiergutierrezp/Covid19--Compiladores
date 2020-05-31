@@ -9,8 +9,9 @@ funcion int factPeludo (int : j);
 var
 int : k;
 {
+    k = 2;
     i = 100 * 2;
-    regresa(factPeludo(2) * 2);
+    regresa(k);
 }
 
 funcion int fact (int : j);
@@ -39,6 +40,7 @@ int : valor;
 
 principal () 
 {   
+  k = 5;
   lee(p); 
   escribe(p);
   j=p*2;

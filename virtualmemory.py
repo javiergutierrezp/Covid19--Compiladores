@@ -1,4 +1,4 @@
-from utils import VarCount, printQuads
+from utils import VarCount, pq
 
 class CompilationMemorySegment():
     def __init__(self, beginning, size, used_space = 0):
