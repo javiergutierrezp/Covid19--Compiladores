@@ -206,9 +206,9 @@ def receivedFunctionParameters(function_name):
       ].type
       given_param_type = type_stack.pop()
       if SHOW_VIRTUAL:
-        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, i, False, given_param_type)
+        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), function_name, i, False, given_param_type)
       else:
-        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, "param{}".format(i + 1), False, given_param_type)
+        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), function_name, "param{}".format(i + 1), False, given_param_type)
       if definition_param_type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 

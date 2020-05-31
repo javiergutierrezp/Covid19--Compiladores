@@ -9,14 +9,15 @@ funcion int fib (int : j);
 var
 int : k;
 {
-    si (j == 1) entonces {
-        regresa (0);
-    }
-    si (j == 2) entonces {
-        regresa (1);
-    }
-
-    regresa (fib (j - 1) + fib(j - 2));
+    si (j <= 1) entonces {
+        regresa(j);
+    } sino {
+        si (j == 2) entonces {
+            regresa (1);
+        } sino {
+            regresa(fib (j - 1) + fib(j - 2));
+        }
+    }    
 }
 
 funcion int fact (int : j);
@@ -45,7 +46,8 @@ int : valor;
 }
 
 principal () 
-{   
+{
+  escribe(fib(7));
   k = 5;
   lee(p); 
   escribe(p);
