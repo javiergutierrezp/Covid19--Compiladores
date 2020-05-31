@@ -433,6 +433,7 @@ class semanticCube():
             19 : 'LEE',
             20 : 'ESCRIBE',
             21 : 'REGRESA',
+            22 : 'PARAM'
         }
 
         self.id_of_oper = {
@@ -457,5 +458,6 @@ class semanticCube():
             'ENDFUNC' : 18,
             'LEE' : 19,
             'ESCRIBE' : 20,
-            'REGRESA' : 21
+            'REGRESA' : 21,
+            'PARAM' : 22
         }

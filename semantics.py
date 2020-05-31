@@ -8,7 +8,7 @@ DATAFRAME_SIZE = 8
 
 from grammar.covid19SemanticCube import semanticCube
 from virtualmemory import getCompilationMemory
-from utils import VarCount
+from utils import VarCount, printQuads
 
 compilation_memory = getCompilationMemory()
 
@@ -204,30 +204,15 @@ def receivedFunctionParameters(function_name):
       received_param_counter[0]
     ))
   for i in range(0, len(function_directory[function_name].params)):
-      definition_param = function_directory[function_name].params[
+      definition_param_type = function_directory[function_name].params[
         len(function_directory[function_name].params) - 1 - i
-      ]
-      given_param_type = type_stack[type_stack_len - 1 - i]
-
-      # print("Evaluating i={}".format(i))
-      # print(definition_param.type, given_param_type)
-      
-      # if definition_param.dimensions != {}:
-      #   given_param_dimensions = function_directory['principal'].vars_table[ids_stack[ids_stack_len - 1 - i]].dimensions
-      #   # print("{} vs {}".format(definition_param.dimensions, given_param_dimensions))
-
-      #   if definition_param.dimensions != given_param_dimensions:
-      #     raise EnvironmentError("""
-      #       Given argument does not match the 
-      #       parameter dimension of function '{}' - the argument #{} 
-      #       does not have the same dimensions as the parameter declared
-      #       in the function definition
-      #     """.format(
-      #       function_name,
-      #       i + 1,
-      #     ))
-
-      if definition_param.type != given_param_type:
+      ].type
+      given_param_type = type_stack.pop()
+      if SHOW_VIRTUAL:
+        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, i, False, given_param_type)
+      else:
+        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, "param{}".format(i + 1), False, given_param_type)
+      if definition_param_type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 
           parameter types of function '{}' - the argument #{} 
@@ -235,7 +220,7 @@ def receivedFunctionParameters(function_name):
         """.format(
           function_name,
           len(function_directory[function_name].params) - i,
-          definition_param.type,
+          definition_param_type,
           given_param_type
         ))
   received_param_counter[0] = 0
@@ -294,6 +279,7 @@ def forEvaluation():
   ids_stack.append(last_quad.result_id)
   leaving('comparacion')
   jump_stack.append(len(quads) - 1)
+  
   generateAndAppendQuad(getVirtualOperator('GOTOV'), ids_stack.pop(), None, None, False, None)
   jump_stack.append(len(quads) - 1)
   type_stack.pop()
@@ -302,9 +288,10 @@ def forEvaluation():
 
 def insertCteToStructs(cte, cte_type):
   type_stack.append(cte_type)
-  if cte and cte not in cte_directory[0]:
+  print("type_stackinsertCteToStructs")
+  if cte not in cte_directory[0]: # No existe...
     cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte)
-    value = None
+    value = cte
     if cte_type == 'int':
       value = int(cte)
     elif cte_type == 'float':
@@ -312,10 +299,11 @@ def insertCteToStructs(cte, cte_type):
       
     cte_directory[0][str(cte)] = Constant(value, cte_type, cte_virtual_memory)
     virtual_cte_directory[0][cte_virtual_memory] = Constant(value, cte_type, cte_virtual_memory)
-
-def insertCteToStack(cte):
+  else: # Si existe, ocupamos buscarla...
+    cte_virtual_memory = cte_directory[0][cte].memory_cell
+  print("insertCteToStack")
   if SHOW_VIRTUAL:
-    ids_stack.append(cte_directory[0][str(cte)].memory_cell)
+    ids_stack.append(cte_virtual_memory)
   else:
     ids_stack.append(cte)
 
@@ -375,6 +363,9 @@ def getAllowedOperators(origin):
 def leaving(origin):
   allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
+      # print("leaving_origin: {}\n type_stack: {}\n ids_stack:{} \n quads:\n".format(origin, type_stack,ids_stack))
+      # printQuads(quads)
+      # print("\n")
       operator = operators_stack.pop()
       right_operand = ids_stack.pop()
       right_operand_type = type_stack.pop()
@@ -392,28 +383,51 @@ def leaving(origin):
 
       if SHOW_VIRTUAL:
         final_operator = semantic_cube.id_to_oper[operator]
-
       result_type = semantic_cube.cube[left_operand_type][final_operator][right_operand_type]
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
-        # print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
+        print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
         generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num'), True, result_type)
-        insertCteToStructs(None, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
 def readId(identificator):
-  generateAndAppendQuad(getVirtualOperator('LEE'), identificator, None, getVirtualMemoryFrom('temporary', "string", 'temp_num'), False, "string")
+  if SHOW_VIRTUAL:
+    if identificator in function_directory[current_scope[0]].vars_table: #local
+      generateAndAppendQuad(getVirtualOperator('LEE'), function_directory[current_scope[0]].vars_table[identificator].memory_cell, None, None, False, "string")
+    elif identificator in function_directory['principal'].vars_table: #global
+      generateAndAppendQuad(getVirtualOperator('LEE'), function_directory['principal'].vars_table[identificator].memory_cell, None, None, False, "string")
+    else: #no existe
+      raise EnvironmentError("The ID {}, that was intended to be received in 'lee()', was not found. Perhaps it hasn't been declared yet?".format(id_or_cte))
+  else:
+    generateAndAppendQuad(getVirtualOperator('LEE'), identificator, None, None, False, "string")
+  
   type_stack.pop()
 
 def write(id_or_cte):
   #TODO: Necesitamos traducir estas id's y CTE's a memory cells
-  if id_or_cte:
-    generateAndAppendQuad(getVirtualOperator('ESCRIBE'), id_or_cte, None, None, False, "string")
-  else:
+  # Determinar si es una variable o un string
+  print(type_stack, len(type_stack))
+  print(ids_stack, len(ids_stack))
+  if not id_or_cte: # expresion
     generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop(), None, None, False, "string")
-  type_stack.pop()
+    type_stack.pop()
+  elif id_or_cte[0] == "'" or id_or_cte[0] == '"': # String
+    if SHOW_VIRTUAL:
+      # import pdb; pdb.set_trace()
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop() , None, None, False, "string")
+    else:
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), cte_directory[0][ids_stack.pop()].memory_cell, None, None, False, "string")
+    type_stack.pop()
+  else:
+    if id_or_cte in function_directory[current_scope[0]].vars_table: #local
+      # import pdb; pdb.set_trace()
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory[current_scope[0]].vars_table[id_or_cte].memory_cell, None, None, False, "string")
+    elif id_or_cte in function_directory['principal'].vars_table: #global
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory['principal'].vars_table[id_or_cte].memory_cell, None, None, False, "string")
+    else: #no existe
+      raise EnvironmentError("The ID {}, that was intended to be written, was not found. Perhaps it hasn't been declared yet?".format(id_or_cte))
 
 def incrementTempCounter(var_type):
   if(var_type == "string"):
@@ -436,8 +450,8 @@ def generateReturnQuad(megaexpresion):
     # print(quads)
     # print(ids_stack)
     # print(type_stack)
-    return_value = ids_stack[len(ids_stack) - 1]
-    megaexpresion_return_type = type_stack[len(type_stack) - 1]
+    return_value = ids_stack.pop()
+    megaexpresion_return_type = type_stack.pop()
   elif ('(' in megaexpresion): # Function
     called_function = megaexpresion[: megaexpresion.find('(')]
     megaexpresion_return_type = function_directory['principal'].vars_table[called_function].type
@@ -460,12 +474,15 @@ def generateReturnQuad(megaexpresion):
     return_value = megaexpresion
   if (megaexpresion_return_type == function_directory['principal'].vars_table[current_scope[0]].type):
     final_return = None
-    if type(return_value) == int: #Memory cell return
-      print("CTE (Memory cell) return {}".format(return_value))
+    if SHOW_VIRTUAL:
+      if type(return_value) == int: #Memory cell return
+        print("CTE (Memory cell) return {}".format(return_value))
+        final_return = return_value
+      else: #id return
+        print("ID return {}".format(return_value))
+        final_return = function_directory[current_scope[0]].vars_table[return_value].memory_cell
+    else:
       final_return = return_value
-    else: #id return
-      print("ID return {}".format(return_value))
-      final_return = function_directory[current_scope[0]].vars_table[return_value].memory_cell
     generateAndAppendQuad(getVirtualOperator('REGRESA'), current_scope[0], None, final_return, False, megaexpresion_return_type)
   else:
     raise EnvironmentError("""
@@ -501,6 +518,7 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
       incrementVarCounter('temporary', result_type)
       if append_temp:
         ids_stack.append(memory_cell)
+        type_stack.append(result_type)
     else: # Asignacion
       new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
@@ -535,6 +553,8 @@ def setScope(id):
   current_scope[0] = id
   if id == 'principal':
     function_directory['principal'].first_quad = len(quads)
+    resetVarCounter('temporary')
+    resetVarCounter('local')
 
 def addFunctionToDirectory(function_id, function_type):
   function_directory[function_id] = Function(function_id, function_type, [], None, None, {})

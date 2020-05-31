@@ -1,4 +1,4 @@
-from utils import VarCount
+from utils import VarCount, printQuads
 
 class CompilationMemorySegment():
     def __init__(self, beginning, size, used_space = 0):
@@ -244,7 +244,8 @@ class VirtualMachine():
                     instruction_pointer = previousIP_stack.pop()
                 elif current_quad.operator == 19: # LEE
                     computed_value = input("input")
-                    destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(current_quad.result_id)
+                    destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(current_quad.left_operand)
+                    computed_value = castTo(destination_variable_type, computed_value)
                     self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                     instruction_pointer += 1
                 elif current_quad.operator == 20: # ESCRIBE
@@ -260,6 +261,12 @@ class VirtualMachine():
                     destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(function_memory_cell)
                     self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                     instruction_pointer += 1
+                elif current_quad.operator == 22: # PARAM
+                    # import pdb; pdb.set_trace()
+                    computed_value = self.accessMemory(current_quad.left_operand)
+                    # import pdb; pdb.set_trace()
+                    self.setMemorySegmentValue('local', computed_value, current_quad.result_id, destination_variable_type)
+
         printNotNone("global_memory.int_space", self.global_memory.int_space)
         printNotNone("global_memory.float_space", self.global_memory.float_space)
         printNotNone("local_memory", self.local_memory)
@@ -339,6 +346,14 @@ def boolToInt(operation):
 # * local (para funciones) -> ERA
 # * cte (en todas partes...) -> Expandirla dependiendo de ERA
 # * temporal (en todas partes...) -> Inicializarla desde el inicio
+
+def castTo(var_type, value):
+    if var_type == 'int':
+        return int(value)
+    elif var_type == 'float':
+        return float(value)
+    else:
+        return value
 
 def printNotNone(name, list):
     print(name)

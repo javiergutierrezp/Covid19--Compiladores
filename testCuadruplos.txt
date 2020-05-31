@@ -1,24 +1,27 @@
 Programa Covid19;
 var
 int : c;
-int : a[10][20];
+int : a;
 int : g;
 float : g2;
 int : x;
-char : z[4][2];
+char : z;
+string: ejemplo;
 
-funcion int javi (float : h, char : b[4][2], int : c[10][20]);
+funcion int javi (float : h, char : b, int : c);
 var
 Dataframe : wazabe;
 {
+   ejemplo = "blabla";
    x = 1;
    c = 5;
+   escribe(ejemplo);
    escribe("hello");
    g = x + c;
    regresa (x + c);
 }
 
-funcion int emilio (int : h, char : b[4][2], int : c[10][20]);
+funcion int emilio (int : h, char : b, int : c);
 var
 Dataframe : wazabe;
 {
@@ -32,5 +35,5 @@ Dataframe : wazabe;
 
 principal () 
 {
-   emilio(1, z, a);
+   c = emilio(1, z, a);
 };

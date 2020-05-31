@@ -88,8 +88,6 @@ lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA i
 escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}))* PARENTESISD
           ;
 
-// En escritura estamos aceptando cualquier cte como letrero, atacar con semantica?
-
 megaexpresion : superexpresion {leaving('union')} ((Y {insertOperator($Y.text)} | O {insertOperator($O.text)}) superexpresion {leaving('union')})*
               ;
 
@@ -102,7 +100,7 @@ expresion : termino {leaving('termino')} ((SUMA {insertOperator($SUMA.text)} | R
 termino : factor {leaving('factor')} ((MULTIPLICACION {insertOperator($MULTIPLICACION.text)} | DIVISION {insertOperator($DIVISION.text)}) factor {leaving('factor')})*
         ;      
 
-factor : identificador {insertIdToStack($identificador.text)} | cte {insertCteToStack($cte.text)} | llamadametodo  | PARENTESISI {insertParenthesis()} megaexpresion PARENTESISD {deleteParenthesis()}
+factor : identificador {insertIdToStack($identificador.text)} | cte | llamadametodo  | PARENTESISI {insertParenthesis()} megaexpresion PARENTESISD {deleteParenthesis()}
        ;       
 
 estatuto : (llamadametodo PUNTOYCOMA | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
