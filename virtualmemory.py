@@ -145,7 +145,9 @@ class VirtualMachine():
         current_quad = None
         previousIP_stack = []
         while instruction_pointer < len(self.quads):
-            print('instruction_pointer: {}'.format(instruction_pointer))
+            # if instruction_pointer >= 62:
+            #     import pdb; pdb.set_trace()
+            # print('instruction_pointer: {}'.format(instruction_pointer))
             # Leer quad
             current_quad = self.quads[instruction_pointer]
             
@@ -199,6 +201,8 @@ class VirtualMachine():
                 instruction_pointer += 1
             elif current_quad.operator == 4:  # =
                 # print("found a =")
+                # if current_quad.left_operand == 6009 and current_quad.result_id == 0:
+                #     import pdb; pdb.set_trace()
                 if type(current_quad.left_operand) == int:
                     left_operand = self.accessMemory(current_quad.left_operand)
                 else:
@@ -217,7 +221,7 @@ class VirtualMachine():
                     else:
                         instruction_pointer = current_quad.result_id
                 elif current_quad.operator == 14: # GotoV
-                    print("found a GotoV")
+                    # print("found a GotoV")
                     condition = self.accessMemory(current_quad.left_operand)
                     if condition == 1:
                         instruction_pointer = current_quad.result_id
@@ -229,8 +233,8 @@ class VirtualMachine():
                         instruction_pointer = current_quad.result_id
                     else:
                         instruction_pointer += 1
-                    print("found a GotoF")
-                elif current_quad.operator == 16: # GOSUB
+                    # print("found a GotoF")
+                elif current_quad.operator == 16: # ENDFUNC
                     previousIP_stack.append(instruction_pointer + 1)
                     instruction_pointer = self.function_directory[current_quad.left_operand].first_quad
                 elif current_quad.operator == 17: # ERA
@@ -262,16 +266,15 @@ class VirtualMachine():
                     self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                     instruction_pointer += 1
                 elif current_quad.operator == 22: # PARAM
-                    # import pdb; pdb.set_trace()
                     computed_value = self.accessMemory(current_quad.left_operand)
-                    # import pdb; pdb.set_trace()
                     self.setMemorySegmentValue('local', computed_value, current_quad.result_id, destination_variable_type)
+                    instruction_pointer += 1
 
-        printNotNone("global_memory.int_space", self.global_memory.int_space)
-        printNotNone("global_memory.float_space", self.global_memory.float_space)
-        printNotNone("local_memory", self.local_memory)
-        printNotNone("temporary_memory.int_space", self.temporary_memory.int_space)
-        printNotNone("temporary_memory.float_space", self.temporary_memory.float_space)
+        # printNotNone("global_memory.int_space", self.global_memory.int_space)
+        # printNotNone("global_memory.float_space", self.global_memory.float_space)
+        # printNotNone("local_memory", self.local_memory)
+        # printNotNone("temporary_memory.int_space", self.temporary_memory.int_space)
+        # printNotNone("temporary_memory.float_space", self.temporary_memory.float_space)
         return 0;
 
     def determineScope(self, virtual_memory):

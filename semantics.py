@@ -1,4 +1,4 @@
-SHOW_VIRTUAL = False
+SHOW_VIRTUAL = True
 
 INT_SIZE = 2
 FLOAT_SIZE = 4
@@ -265,10 +265,16 @@ def addGotoEnd(origin):
     # Decir que al finalizar el bloque for, re-evaluar la condición
     evaluation_index = jump_stack.pop()
     iterator_index = evaluation_index - 1
-    generateAndAppendQuad(getVirtualOperator('+'), quads[iterator_index].result_id, 1, quads[iterator_index].result_id, False, "int")
+    generateAndAppendQuad(getVirtualOperator('+'), quads[iterator_index].result_id, getVirtualCte('1'), quads[iterator_index].result_id, False, "int")
     generateAndAppendQuad(getVirtualOperator('GOTO'), None, None, evaluation_index, False, None)
     # Decir que cuando N == M nos salimos del for
     quads[last_goto_index].result_id = len(quads)
+
+def getVirtualCte(cte):
+  if SHOW_VIRTUAL:
+    return cte_directory[0][cte].memory_cell
+  else:
+    return 1
 
 def forEvaluation():
   last_quad = quads[len(quads) - 1]
@@ -300,6 +306,7 @@ def insertCteToStructs(cte, cte_type):
     virtual_cte_directory[0][cte_virtual_memory] = Constant(value, cte_type, cte_virtual_memory)
   else: # Si existe, ocupamos buscarla...
     cte_virtual_memory = cte_directory[0][cte].memory_cell
+  print(cte, cte_virtual_memory)
   
   if SHOW_VIRTUAL:
     ids_stack.append(cte_virtual_memory)
@@ -402,7 +409,7 @@ def write(id_or_cte):
     if SHOW_VIRTUAL:
       generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop() , None, None, False, "string")
     else:
-      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), cte_directory[0][ids_stack.pop()].memory_cell, None, None, False, "string")
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), id_or_cte, None, None, False, "string")
     type_stack.pop()
   else:
     if id_or_cte in function_directory[current_scope[0]].vars_table: #local

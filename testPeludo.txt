@@ -1,6 +1,6 @@
 Programa Covid19;
 var
-int : i, j, p, maxVariables, maxRenglones, z;
+int : i, j, p, w, maxVariables, maxRenglones, z;
 int: valor;
 Dataframe : DatosCovid;
 int : k;
@@ -36,6 +36,7 @@ var
 int : x;
 int : valor;
 { x = 0;
+    z = 22;
     mientras (x < 11) haz
         {i = y * z;
         x = x + 1;}
@@ -56,9 +57,9 @@ principal ()
       {valor = k;
           escribe ("valor =", valor);}
   escribe ("indice de correlacion entre Variable 1 y Variable 5 de la muestra", "dimelooou");
-  i = 6;
-  mientras(i >= 0) haz
-      { escribe("resultado #", i,fact(i+2) * valor);
-          i = i - 1;
+  w = 6;
+  mientras(w >= 0) haz
+      { escribe("resultado #", w,fact(w+2) * valor);
+          w = w - 1;
       }
 }
