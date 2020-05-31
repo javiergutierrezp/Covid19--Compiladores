@@ -18,6 +18,9 @@ def main(argv):
     tree = parser.programa()
     walker.walk(printer, tree)
 
+    print(function_directory)
+    print(compilation_memory)
+
     if parser.getNumberOfSyntaxErrors() == 0:
         # Print them quadsssss
         pq(quads)

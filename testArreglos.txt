@@ -1,0 +1,9 @@
+Programa patito;
+var
+int: a;
+int: b[4], c[6];
+int: d;
+
+principal() {
+    escribe("holaaa");
+}

@@ -6,9 +6,9 @@ class CompilationMemorySegment():
         self.size = int(size)
         self.used_space = int(used_space)
 
-    def incrementUsedSpace(self):
+    def incrementUsedSpace(self, space):
         current_memory_cell = self.beginning + self.used_space
-        self.used_space += 1
+        self.used_space += space
         return current_memory_cell
 
     def __repr__(self):
