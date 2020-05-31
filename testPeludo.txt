@@ -1,0 +1,57 @@
+Programa Covid19;
+var
+int : i, j, p, maxVariables, maxRenglones, z;
+int: valor;
+Dataframe : DatosCovid;
+int : k;
+
+funcion int factPeludo (int : j);
+var
+int : k;
+{
+    i = 100 * 2;
+    regresa(factPeludo(2) * 2);
+}
+
+funcion int fact (int : j);
+var
+int : k;
+{
+    p = 2;
+    i = j + (p - j * 2 + j);
+    si (j==1) entonces
+    {regresa (j);}
+    sino
+    {regresa (j * 4);}
+}
+
+funcion inicial (int : y);
+var 
+int : x;
+int : valor;
+{ x = 0;
+    mientras (x < 11) haz
+        {i = y * z;
+        x = x + 1;}
+    valor = fact(2);
+    escribe ("Media para la tabla de variables", valor);
+}
+
+principal () 
+{   
+  lee(p); 
+  escribe(p);
+  j=p*2;
+  inicial(p*j - 5);
+  desde i=0 hasta 9 hacer
+      {escribe(i);}
+  desde k = 0 hasta 10 hacer
+      {valor = k;
+          escribe ("valor =", valor);}
+  escribe ("indice de correlacion entre Variable 1 y Variable 5 de la muestra", "dimelooou");
+  i = 6;
+  mientras(i >= 0) haz
+      { escribe("resultado #", i,fact(i+2) * valor);
+          i = i - 1;
+      }
+}
