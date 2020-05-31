@@ -4,6 +4,7 @@ int : i, j, p, w, maxVariables, maxRenglones, z;
 int: valor;
 Dataframe : DatosCovid;
 int : k;
+int : x;
 
 funcion int fib (int : j);
 var
@@ -12,11 +13,7 @@ int : k;
     si (j <= 1) entonces {
         regresa(j);
     } sino {
-        si (j == 2) entonces {
-            regresa (1);
-        } sino {
-            regresa(fib (j - 1) + fib(j - 2));
-        }
+      regresa(fib (j - 1) + fib(j - 2));      
     }    
 }
 
@@ -47,7 +44,7 @@ int : valor;
 
 principal () 
 {
-  escribe(fib(7));
+  escribe(fib(9));
   k = 5;
   lee(p); 
   escribe(p);
