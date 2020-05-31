@@ -5,13 +5,18 @@ int: valor;
 Dataframe : DatosCovid;
 int : k;
 
-funcion int factPeludo (int : j);
+funcion int fib (int : j);
 var
 int : k;
 {
-    k = 2;
-    i = 100 * 2;
-    regresa(k);
+    si (j == 1) entonces {
+        regresa (0);
+    }
+    si (j == 2) entonces {
+        regresa (1);
+    }
+
+    regresa (fib (j - 1) + fib(j - 2));
 }
 
 funcion int fact (int : j);

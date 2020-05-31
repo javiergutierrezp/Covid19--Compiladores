@@ -1,4 +1,4 @@
-SHOW_VIRTUAL = True
+SHOW_VIRTUAL = False
 
 INT_SIZE = 2
 FLOAT_SIZE = 4
@@ -400,14 +400,12 @@ def write(id_or_cte):
     type_stack.pop()
   elif id_or_cte[0] == "'" or id_or_cte[0] == '"': # String
     if SHOW_VIRTUAL:
-      # import pdb; pdb.set_trace()
       generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop() , None, None, False, "string")
     else:
       generateAndAppendQuad(getVirtualOperator('ESCRIBE'), cte_directory[0][ids_stack.pop()].memory_cell, None, None, False, "string")
     type_stack.pop()
   else:
     if id_or_cte in function_directory[current_scope[0]].vars_table: #local
-      # import pdb; pdb.set_trace()
       generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory[current_scope[0]].vars_table[id_or_cte].memory_cell, None, None, False, "string")
     elif id_or_cte in function_directory['principal'].vars_table: #global
       generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory['principal'].vars_table[id_or_cte].memory_cell, None, None, False, "string")
@@ -436,7 +434,6 @@ def generateReturnQuad(megaexpresion):
     megaexpresion_return_type = type_stack.pop()
     return_value = ids_stack.pop()
   else: # CTE or ID
-    # import pdb; pdb.set_trace()
     megaexpresion_return_type = type_stack.pop()
     return_value = ids_stack.pop()
   if (megaexpresion_return_type == function_directory['principal'].vars_table[current_scope[0]].type):

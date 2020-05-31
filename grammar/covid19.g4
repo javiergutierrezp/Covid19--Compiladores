@@ -106,7 +106,7 @@ factor : identificador {insertIdToStack($identificador.text)} | cte | llamadamet
 estatuto : (llamadametodo PUNTOYCOMA | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
          ;
 
-llamadametodo : ID {validateFunctionExistance($ID.text)} {insertERASize($ID.text)} PARENTESISI (megaexpresion {incrementReceivedParamCounter()} (COMA megaexpresion {incrementReceivedParamCounter()})*)? {receivedFunctionParameters($ID.text)} PARENTESISD {insertGOSUB($ID.text)} 
+llamadametodo : ID {validateFunctionExistance($ID.text)} {insertERASize($ID.text)} PARENTESISI {insertParenthesis()} (megaexpresion {incrementReceivedParamCounter()} (COMA megaexpresion {incrementReceivedParamCounter()})*)? {receivedFunctionParameters($ID.text)} PARENTESISD {deleteParenthesis()} {insertGOSUB($ID.text)} 
               ;
 
 regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {generateReturnQuad($megaexpresion.text)} PUNTOYCOMA
