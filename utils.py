@@ -7,17 +7,17 @@ class VarCount:
     self.string_type = string_type
     self.dataframe_type = dataframe_type
   
-  def increment(self, var_type):
+  def increment(self, var_type, space_used):
     if(var_type == "string"):
-      self.string_type += 1
+      self.string_type += space_used
     elif(var_type == "int"):
-      self.int_type += 1
+      self.int_type += space_used
     elif(var_type == "float"):
-      self.float_type += 1
+      self.float_type += space_used
     elif(var_type == "char"):
-      self.char_type += 1
+      self.char_type += space_used
     elif(var_type == "Dataframe"):
-      self.dataframe_type += 1
+      self.dataframe_type += space_used
   
   def __add__(self, var_counter): 
       string_type = self.string_type + var_counter.string_type

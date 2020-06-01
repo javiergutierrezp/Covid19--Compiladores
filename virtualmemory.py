@@ -6,9 +6,9 @@ class CompilationMemorySegment():
         self.size = int(size)
         self.used_space = int(used_space)
 
-    def incrementUsedSpace(self):
+    def incrementUsedSpace(self, space):
         current_memory_cell = self.beginning + self.used_space
-        self.used_space += 1
+        self.used_space += space
         return current_memory_cell
 
     def __repr__(self):
@@ -145,8 +145,6 @@ class VirtualMachine():
         current_quad = None
         previousIP_stack = []
         while instruction_pointer < len(self.quads):
-            # if instruction_pointer >= 62:
-            #     import pdb; pdb.set_trace()
             # print('instruction_pointer: {}'.format(instruction_pointer))
             # Leer quad
             current_quad = self.quads[instruction_pointer]
@@ -202,7 +200,6 @@ class VirtualMachine():
             elif current_quad.operator == 4:  # =
                 # print("found a =")
                 # if current_quad.left_operand == 6009 and current_quad.result_id == 0:
-                #     import pdb; pdb.set_trace()
                 if type(current_quad.left_operand) == int:
                     left_operand = self.accessMemory(current_quad.left_operand)
                 else:
@@ -234,7 +231,7 @@ class VirtualMachine():
                     else:
                         instruction_pointer += 1
                     # print("found a GotoF")
-                elif current_quad.operator == 16: # ENDFUNC
+                elif current_quad.operator == 16: # GOSUB
                     previousIP_stack.append(instruction_pointer + 1)
                     instruction_pointer = self.function_directory[current_quad.left_operand].first_quad
                 elif current_quad.operator == 17: # ERA
@@ -294,8 +291,7 @@ class VirtualMachine():
     def determineRuntimeIndex(self, virtual_memory, scope_floor, variable_floor):
         # print(virtual_memory, scope_floor, variable_floor)
         runtime_memory_index = None
-        runtime_memory_index = virtual_memory % scope_floor if scope_floor != 0 else virtual_memory
-        runtime_memory_index = runtime_memory_index % variable_floor if variable_floor != 0 else virtual_memory
+        runtime_memory_index = virtual_memory % variable_floor if variable_floor != 0 else virtual_memory
         # print(runtime_memory_index)
         return runtime_memory_index
 

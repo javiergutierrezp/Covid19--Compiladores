@@ -100,7 +100,7 @@ def determineVarCounter(scope):
 
 def incrementVarCounter(scope, var_type):
   var_counter = determineVarCounter(scope)
-  var_counter[0].increment(var_type)
+  var_counter[0].increment(var_type, 1)
 
 def resetVarCounter(scope):
   if SHOW_VIRTUAL:
@@ -135,7 +135,7 @@ def getVarCountFromType(scope, var_type):
   elif(var_type == "Dataframe"):
     return final_var_counter.dataframe_type
 
-def getVirtualMemoryFrom(scope, var_type, param, extra = None):
+def getVirtualMemoryFrom(scope, var_type, param, extra, required_space):
   final_scope = None
   if scope != 'temporary' and scope != 'cte':
     if scope == 'principal':
@@ -144,7 +144,6 @@ def getVirtualMemoryFrom(scope, var_type, param, extra = None):
       final_scope = 'local'
   else:
     final_scope = scope
-
   compilation_memory_cell = None
   if not SHOW_VIRTUAL:
     if param == 'temp_num':
@@ -153,7 +152,7 @@ def getVirtualMemoryFrom(scope, var_type, param, extra = None):
       compilation_memory_cell = extra
   else:
     # print(final_scope, var_type)
-    compilation_memory_cell = compilation_memory[final_scope][var_type].incrementUsedSpace()
+    compilation_memory_cell = compilation_memory[final_scope][var_type].incrementUsedSpace(required_space)
   # print(compilation_memory_cell)
   return compilation_memory_cell
 
@@ -232,7 +231,7 @@ def insertGOSUB(function_name):
   # PARCHE GUADALUPANO WUWUWUW
   if function_name in function_directory['principal'].vars_table:
     function_type = function_directory['principal'].vars_table[function_name].type
-    generateAndAppendQuad(getVirtualOperator("="), function_name, None, getVirtualMemoryFrom('temporary', function_type, 'temp_num'), True, function_type)
+    generateAndAppendQuad(getVirtualOperator("="), function_name, None, getVirtualMemoryFrom('temporary', function_type, 'temp_num', None, 1), True, function_type)
 
 ########## Cuadruplos estatutos no lineales ##########
 
@@ -295,7 +294,7 @@ def forEvaluation():
 def insertCteToStructs(cte, cte_type):
   type_stack.append(cte_type)
   if cte not in cte_directory[0]: # No existe...
-    cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte)
+    cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte, 1)
     value = cte
     if cte_type == 'int':
       value = int(cte)
@@ -306,7 +305,7 @@ def insertCteToStructs(cte, cte_type):
     virtual_cte_directory[0][cte_virtual_memory] = Constant(value, cte_type, cte_virtual_memory)
   else: # Si existe, ocupamos buscarla...
     cte_virtual_memory = cte_directory[0][cte].memory_cell
-  print(cte, cte_virtual_memory)
+  # print(cte, cte_virtual_memory)
   
   if SHOW_VIRTUAL:
     ids_stack.append(cte_virtual_memory)
@@ -314,19 +313,64 @@ def insertCteToStructs(cte, cte_type):
     ids_stack.append(cte)
 
 def insertIdToStack(identificator):
-  # print('insertIdToStack {}'.format(identificator))
-  # Busca en donde está esta variable...
-  if identificator in function_directory[current_scope[0]].vars_table: # Current scope
-    type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
-    ids_stack.append(function_directory[current_scope[0]].vars_table[identificator].memory_cell)
-  elif identificator in function_directory['principal'].vars_table: # Global
-    type_stack.append(function_directory['principal'].vars_table[identificator].type)
-    # print("************* ")
-    # print(function_directory['principal'].vars_table[identificator])
-    ids_stack.append(function_directory['principal'].vars_table[identificator].memory_cell)
+  # TODO: Diferenciar entre un arreglo y un no arreglo...
+  #CHECKING DIMMENSION ALREADY
+  offset = 0
+  declaration_dimensions = {}
+  given_dimensions, var_id = getDimensions(identificator)
+  
+  scope = None
+  if var_id in function_directory[current_scope[0]].vars_table: # Current scope
+    scope = current_scope[0]
+  elif var_id in function_directory['principal'].vars_table: # Global
+    scope = 'principal'
   else:
     raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
     quit()
+
+  declaration_dimensions = function_directory[scope].vars_table[var_id].dimensions;
+
+  # Size of declaration dimensions  does not match given_dimensions
+  if len(declaration_dimensions) != len(given_dimensions):
+    raise EnvironmentError("""
+    El arreglo que intentas accesar cuenta con {}
+    dimension(es) y intentaste accesar una {} dimension. Los
+    arreglos en Covid19-- sólo pueden ser accesados
+    de manera individual (no por filas ni columnas)
+    """
+    .format(len(declaration_dimensions),len(given_dimensions)))
+    quit()
+  
+  # Make sure that the subscript is within the range of each of the dimensions
+  offset = 0
+  if given_dimensions != {}:
+    declaredDim1 = declaration_dimensions['1']
+    if given_dimensions['1'] > declaredDim1 or given_dimensions['1'] < 0:
+      raise EnvironmentError("Acceso en dimensión #1 fuera de rango")
+      quit()
+    else:
+      offset = given_dimensions['1']
+    if len(given_dimensions) == 2:
+      declaredDim2 = declaration_dimensions['2']
+      if given_dimensions['2'] > declaredDim2 or given_dimensions['2'] < 0:
+        raise EnvironmentError("Acceso en dimensión #2 fuera de rango")
+        quit()
+      else:
+        offset = given_dimensions['1'] * declaredDim2 + given_dimensions['2']
+        
+        
+  
+  
+  if not SHOW_VIRTUAL:
+    offset =  "[offset de {}]".format(str(offset))
+
+  if scope == current_scope[0]:
+    type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
+    ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
+  else:
+    type_stack.append(function_directory['principal'].vars_table[var_id].type)
+    ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
+    
 
 def insertOperator(operator):
   if SHOW_VIRTUAL:
@@ -384,7 +428,7 @@ def leaving(origin):
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
         print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
-        generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num'), True, result_type)
+        generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num', None, 1), True, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
@@ -397,7 +441,6 @@ def readId(identificator):
     generateAndAppendQuad(getVirtualOperator('LEE'), function_directory['principal'].vars_table[identificator].memory_cell, None, None, False, id_type)
   else: #no existe
     raise EnvironmentError("The ID {}, that was intended to be received in 'lee()', was not found. Perhaps it hasn't been declared yet?".format(identificator))
-
 
 def write(id_or_cte):
   #TODO: Necesitamos traducir estas id's y CTE's a memory cells
@@ -479,7 +522,7 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
   else:
-    if type(temp_num) == int: # No asignacion
+    if operator != '=' and operator != 4: # No asignacion
       memory_cell = None
       if SHOW_VIRTUAL:
         memory_cell = temp_num
@@ -518,7 +561,18 @@ def addVarToVarsTable(var_type, var_id, last_var):
   else:
     final_type = last_var[:last_var.find(':')]
   dimensions, id_string = getDimensions(var_id)
-  var_directory[0][id_string] = Variable(id_string, final_type, dimensions, getVirtualMemoryFrom(current_scope[0], final_type, 'id', id_string))
+  required_space = getRequiredSpace(dimensions)
+  var_directory[0][id_string] = Variable(id_string, final_type, dimensions, getVirtualMemoryFrom(current_scope[0], final_type, 'id', id_string, required_space))
+
+def getRequiredSpace(dimensions):
+  required_space = 1
+  if dimensions != {}:
+    dim1 = dimensions['1']
+    required_space = dim1
+    if '2' in dimensions:
+      dim2 = dimensions['2']
+      required_space *= dim2
+  return required_space
 
 def setScope(id):
   current_scope[0] = id
@@ -530,7 +584,7 @@ def setScope(id):
 def addFunctionToDirectory(function_id, function_type):
   function_directory[function_id] = Function(function_id, function_type, [], None, None, {})
   if function_type:
-    function_directory['principal'].vars_table[function_id] = Variable(function_id, function_type, {}, compilation_memory['global'][function_type].incrementUsedSpace())
+    function_directory['principal'].vars_table[function_id] = Variable(function_id, function_type, {}, compilation_memory['global'][function_type].incrementUsedSpace(1))
 
 def includeVarsTableInFunction(id):
   function_directory[id].vars_table = var_directory[0]
@@ -555,6 +609,9 @@ def getVarCountFromVarsTable(vars_table):
   string_counter = 0
   dataframe_counter = 0
 
+  print("***BEFORE***")
+  print(vars_table)
+
   for key in vars_table:
     var_type = vars_table[key].type
     var_dimensions = vars_table[key].dimensions
@@ -568,14 +625,21 @@ def getVarCountFromVarsTable(vars_table):
       string_counter += getVarCount(var_dimensions)
     elif var_type == 'Dataframe':
       dataframe_counter += 1
-  
-  return VarCount(
+
+
+  final_var_counter = VarCount(
     int_counter,
     float_counter,
     char_counter,
     string_counter,
     dataframe_counter,
   )
+
+  print("***AFTER***")
+  print(final_var_counter)
+  
+  
+  return final_var_counter
 
 def reachedFunctionDefinitionEnd(id):
   # Save ERA Size on function_directory
