@@ -541,11 +541,38 @@ def getDimensions(var_id):
   id_string = str(var_id)
   dimensions = {}
   if id_string.count('[') == 1:
-    dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
+    subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
+    if subscript.isdigit():
+      dimensions['1'] = int(subscript)
+    else:
+      scope = None
+      if subscript in function_directory[current_scope[0]].vars_table: # Current scope
+        scope = current_scope[0]
+      elif subscript in function_directory['principal'].vars_table: # Global
+        scope = 'principal'
+      dimensions['1'] = function_directory[scope].vars_table[subscript].memory_cell
     id_string = id_string[:id_string.find('[')]
   elif id_string.count('[') == 2:
-    dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
-    dimensions['2'] = int(id_string[id_string.rfind('[') + 1:id_string.rfind(']')])
+    subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
+    if subscript.isdigit():
+      dimensions['1'] = int(subscript)
+    else:
+      scope = None
+      if subscript in function_directory[current_scope[0]].vars_table: # Current scope
+        scope = current_scope[0]
+      elif subscript in function_directory['principal'].vars_table: # Global
+        scope = 'principal'
+      dimensions['1'] = function_directory[scope].vars_table[subscript].memory_cell
+    subscript2 = id_string[id_string.rfind('[') + 1:id_string.rfind(']')]
+    if subscript2.isdigit():
+      dimensions['1'] = int(subscript2)
+    else:
+      scope = None
+      if subscript2 in function_directory[current_scope[0]].vars_table: # Current scope
+        scope = current_scope[0]
+      elif subscript2 in function_directory['principal'].vars_table: # Global
+        scope = 'principal'
+      dimensions['1'] = function_directory[scope].vars_table[subscript2].memory_cell
     id_string = id_string[:id_string.find('[')]
   return dimensions, id_string
 

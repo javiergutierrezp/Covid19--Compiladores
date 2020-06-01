@@ -115,7 +115,7 @@ regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {generateReturnQuad($meg
 asignacion : identificador {insertIdToStack($identificador.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
            ;
 
-identificador : ID (CORCHETECUADRADOI CTEINT CORCHETECUADRADOD (CORCHETECUADRADOI CTEINT CORCHETECUADRADOD)?)?
+identificador : ID (CORCHETECUADRADOI (CTEINT | identificador) CORCHETECUADRADOD (CORCHETECUADRADOI (CTEINT | identificador) CORCHETECUADRADOD)?)?
               ;           
 
 programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', None)} {includeVarsTableInFunction('principal')} {addGotoPrincipal()} (metodo)* funcp

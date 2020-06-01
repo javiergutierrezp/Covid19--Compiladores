@@ -239,6 +239,7 @@ class VirtualMachine():
                     self.local_memory.append(RuntimeMemorySegment(var_count))
                     instruction_pointer += 1
                 elif current_quad.operator == 18: # ENDFUNC
+                    import pdb; pdb.set_trace()
                     #Update the current memory(????????)
                     # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
                     self.local_memory.pop()
@@ -266,7 +267,7 @@ class VirtualMachine():
                     computed_value = self.accessMemory(current_quad.left_operand)
                     self.setMemorySegmentValue('local', computed_value, current_quad.result_id, destination_variable_type)
                     instruction_pointer += 1
-
+        
         # printNotNone("global_memory.int_space", self.global_memory.int_space)
         # printNotNone("global_memory.float_space", self.global_memory.float_space)
         # printNotNone("local_memory", self.local_memory)
