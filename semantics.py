@@ -314,15 +314,63 @@ def insertCteToStructs(cte, cte_type):
 
 def insertIdToStack(identificator):
   # TODO: Diferenciar entre un arreglo y un no arreglo...
-  if identificator in function_directory[current_scope[0]].vars_table: # Current scope
-    type_stack.append(function_directory[current_scope[0]].vars_table[identificator].type)
-    ids_stack.append(function_directory[current_scope[0]].vars_table[identificator].memory_cell)
-  elif identificator in function_directory['principal'].vars_table: # Global
-    type_stack.append(function_directory['principal'].vars_table[identificator].type)
-    ids_stack.append(function_directory['principal'].vars_table[identificator].memory_cell)
+  #CHECKING DIMMENSION ALREADY
+  offset = 0
+  declaration_dimensions = {}
+  given_dimensions, var_id = getDimensions(identificator)
+  
+  scope = None
+  if var_id in function_directory[current_scope[0]].vars_table: # Current scope
+    scope = current_scope[0]
+  elif var_id in function_directory['principal'].vars_table: # Global
+    scope = 'principal'
   else:
     raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(identificator))
     quit()
+
+  declaration_dimensions = function_directory[scope].vars_table[var_id].dimensions;
+
+  # Size of declaration dimensions  does not match given_dimensions
+  if len(declaration_dimensions) != len(given_dimensions):
+    raise EnvironmentError("""
+    El arreglo que intentas accesar cuenta con {}
+    dimension(es) y intentaste accesar una {} dimension. Los
+    arreglos en Covid19-- sólo pueden ser accesados
+    de manera individual (no por filas ni columnas)
+    """
+    .format(len(declaration_dimensions),len(given_dimensions)))
+    quit()
+  
+  # Make sure that the subscript is within the range of each of the dimensions
+  offset = 0
+  if given_dimensions != {}:
+    declaredDim1 = declaration_dimensions['1']
+    if given_dimensions['1'] > declaredDim1 or given_dimensions['1'] < 0:
+      raise EnvironmentError("Acceso en dimensión #1 fuera de rango")
+      quit()
+    else:
+      offset = given_dimensions['1']
+    if len(given_dimensions) == 2:
+      declaredDim2 = declaration_dimensions['2']
+      if given_dimensions['2'] > declaredDim2 or given_dimensions['2'] < 0:
+        raise EnvironmentError("Acceso en dimensión #2 fuera de rango")
+        quit()
+      else:
+        offset = given_dimensions['1'] * declaredDim2 + given_dimensions['2']
+        
+        
+  
+  
+  if not SHOW_VIRTUAL:
+    offset =  "[offset de {}]".format(str(offset))
+
+  if scope == current_scope[0]:
+    type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
+    ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
+  else:
+    type_stack.append(function_directory['principal'].vars_table[var_id].type)
+    ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
+    
 
 def insertOperator(operator):
   if SHOW_VIRTUAL:
@@ -474,7 +522,7 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
   else:
-    if type(temp_num) == int: # No asignacion
+    if operator != '=' and operator != 4: # No asignacion
       memory_cell = None
       if SHOW_VIRTUAL:
         memory_cell = temp_num
@@ -561,6 +609,9 @@ def getVarCountFromVarsTable(vars_table):
   string_counter = 0
   dataframe_counter = 0
 
+  print("***BEFORE***")
+  print(vars_table)
+
   for key in vars_table:
     var_type = vars_table[key].type
     var_dimensions = vars_table[key].dimensions
@@ -574,8 +625,9 @@ def getVarCountFromVarsTable(vars_table):
       string_counter += getVarCount(var_dimensions)
     elif var_type == 'Dataframe':
       dataframe_counter += 1
-  
-  return VarCount(
+
+
+  final_var_counter = VarCount(
     int_counter,
     float_counter,
     char_counter,
@@ -583,11 +635,16 @@ def getVarCountFromVarsTable(vars_table):
     dataframe_counter,
   )
 
+  print("***AFTER***")
+  print(final_var_counter)
+  
+  
+  return final_var_counter
+
 def reachedFunctionDefinitionEnd(id):
   # Save ERA Size on function_directory
   function_directory[id].var_count = getVarCountFromVarsTable(function_directory[id].vars_table) + temp_var_counter[0]
   # Release varstable
-  import pdb; pdb.set_trace()
   function_directory[id].vars_table = {}
   # Generate ENDFUNC quad
   generateAndAppendQuad(getVirtualOperator('ENDFUNC'), None, None, None, False, None)
