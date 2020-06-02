@@ -7,12 +7,13 @@ int : k;
 int : x;
 
 funcion int fib (int : j);
-var
-int : k;
 {
+    escribe("Entrando a fib, j:", j);
     si (j <= 1) entonces {
+        escribe("Fib <= 1, regresando:", j);
         regresa(j);
     } sino {
+      escribe("Fib > 1, calculando a sus hijos...");
       regresa(fib (j - 1) + fib(j - 2));      
     }    
 }
@@ -44,21 +45,5 @@ int : valor;
 
 principal () 
 {
-  escribe(fib(9));
-  k = 5;
-  lee(p); 
-  escribe(p);
-  j=p*2;
-  inicial(p*j - 5);
-  desde i=0 hasta 9 hacer
-      {escribe(i);}
-  desde k = 0 hasta 10 hacer
-      {valor = k;
-          escribe ("valor =", valor);}
-  escribe ("indice de correlacion entre Variable 1 y Variable 5 de la muestra", "dimelooou");
-  w = 6;
-  mientras(w >= 0) haz
-      { escribe("resultado #", w,fact(w+2) * valor);
-          w = w - 1;
-      }
+  escribe(fib(3));
 }

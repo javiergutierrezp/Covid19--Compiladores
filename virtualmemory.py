@@ -69,7 +69,7 @@ class VirtualMachine():
         # Cada que salimos de una función, sacamos el último RuntimeMemorySegment del arreglo
         self.local_memory = []
 
-        self.next_local_memory = None
+        self.next_local_memory = []
         self.temporary_params = []
 
     def getCte(self, virtual_memory):
@@ -238,15 +238,14 @@ class VirtualMachine():
                 elif current_quad.operator == 16: # GoSUB
                     previousIP_stack.append(instruction_pointer + 1)
                     instruction_pointer = self.function_directory[current_quad.left_operand].first_quad
-                    self.local_memory.append(self.next_local_memory)
+                    self.local_memory.append(self.next_local_memory.pop())
                     for i in range(len(self.temporary_params)):
                         temp_param = self.temporary_params.pop()
                         self.setMemorySegmentValue('local', temp_param['computed_value'], temp_param['destination_runtime_memory_index'], temp_param['param_type'])
-                    self.next_local_memory = None
-                elif current_quad.operator == 17: # ERA     
-                    # self.setMemorySegmentValue('local', computed_value, current_quad.result_id, param_type)
+                elif current_quad.operator == 17: # ERA
                     var_count = self.function_directory[current_quad.left_operand].var_count
-                    self.next_local_memory = RuntimeMemorySegment(var_count)
+                    self.next_local_memory.append(RuntimeMemorySegment(var_count))
+                    
                     instruction_pointer += 1
                 elif current_quad.operator == 18: # ENDFUNC
                     self.local_memory.pop()
