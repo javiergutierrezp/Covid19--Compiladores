@@ -351,7 +351,6 @@ def insertIdToStack(identificator):
       type_stack.append(function_directory['principal'].vars_table[var_id].type)
       ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
     
-    
 def insertOperator(operator):
   if SHOW_VIRTUAL:
     operators_stack.append(semantic_cube.id_of_oper[operator])
@@ -489,7 +488,7 @@ def verify(dimension, var_id):
       generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, type_stack.pop())
 
       memory_offset_temp = ids_stack.pop()
-      generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, 'lit({})'.format(base), getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, 'int', True)
+      generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, 'lit({})'.format(base), getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, type_stack.pop(), True)
   else: # Primera de única dimensión
     generateAndAppendQuad(getVirtualOperator("+"), 'lit({})'.format(base), dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, 'int', True)
 

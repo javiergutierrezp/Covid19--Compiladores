@@ -211,8 +211,9 @@ class VirtualMachine():
                 if type(current_quad.left_operand) == int:
                     final_left_operand = self.accessMemory(current_quad.left_operand)
                 else:
+                    # import pdb; pdb.set_trace()
                     if type(current_quad.left_operand) == str and 'meta' in current_quad.left_operand:
-                        final_left_operand = self.accessMemory(current_quad.left_operand)
+                        final_left_operand = self.accessMemory(self.accessMemory(current_quad.left_operand))
                     else:
                         final_left_operand = self.accessMemory(self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell)
                 computed_value = final_left_operand
@@ -254,7 +255,8 @@ class VirtualMachine():
                     instruction_pointer += 1
                 elif current_quad.operator == 18: # ENDFUNC
                     #Update the current memory(????????)
-                    import pdb; pdb.set_trace()
+                    # import pdb; pdb.set_trace()
+                    print(self.local_memory[len(self.local_memory) - 1].int_space)
                     # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
                     self.local_memory.pop()
                     instruction_pointer = previousIP_stack.pop()
