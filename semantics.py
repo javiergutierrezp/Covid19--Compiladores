@@ -475,6 +475,8 @@ def incrementTempCounter(var_type):
       return DATAFRAME_SIZE
 
 def generateReturnQuad(megaexpresion):
+  print(megaexpresion)
+  pq(quads)
   megaexpresion_return_type = None
   return_value = None
   if (any(operator in megaexpresion for operator in operators)): # Operation
@@ -515,7 +517,7 @@ def isGoto(operator):
     else:
       return False
   else:
-    return 'GOTO' in operator or 'REGRESA' in operator
+    return 'GOTO' in operator or 'REGRESA' in operator or 'ENDFUNC' in operator or 'ERA' in operator or 'GOSUB' in operator
 
 def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type):
   if isGoto(operator):
@@ -534,7 +536,13 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
         ids_stack.append(memory_cell)
         type_stack.append(result_type)
     else: # Asignacion
-      new_quad = Quad(operator, left_operand, right_operand, temp_num)
+      final_temp_num = temp_num
+      if append_temp: # PARCHE GUADALUPANO
+        final_temp_num = function_directory['principal'].vars_table[left_operand].memory_cell
+        function_return_type = function_directory['principal'].vars_table[left_operand].type
+        ids_stack.append(final_temp_num)
+        type_stack.append(function_return_type)
+      new_quad = Quad(operator, left_operand, right_operand, final_temp_num)
     quads.append(new_quad)
 
 def getDimensions(var_id):

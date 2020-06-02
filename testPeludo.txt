@@ -16,7 +16,7 @@ int : k;
         regresa (1);
     }
 
-    regresa (fib (j - 1) + fib(j - 2));
+    regresa (fib(j-1) + fib(j-2));
 }
 
 funcion int fact (int : j);
@@ -45,7 +45,7 @@ int : valor;
 }
 
 principal () 
-{   
+{
   k = 5;
   lee(p); 
   escribe(p);
