@@ -583,21 +583,29 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
       new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
 
-def getDimensions(var_id):
+def getDimensions(var_id, defining_variable):
   id_string = str(var_id)
   dimensions = {}
-  if id_string.count('[') == 1:
-    import pdb; pdb.set_trace()
-    subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
-    dimensions['1'] = 0
-    # type_stack.pop()
-  elif id_string.count('[') == 2:
-    subscript2 = id_string[id_string.rfind('[') + 1:id_string.rfind(']')]
-    dimensions['2'] = 0
-    # type_stack.pop()
-    subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
-    dimensions['1'] = 0
-    # type_stack.pop()
+  if defining_variable:
+    if id_string.count('[') == 1:
+      subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
+      dimensions['1'] = cte_directory[0][subscript]
+    elif id_string.count('[') == 2:
+      subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
+      subscript2 = id_string[id_string.rfind('[') + 1:id_string.rfind(']')]
+      dimensions['1'] = cte_directory[0][subscript]
+  else:
+    if id_string.count('[') == 1:
+      subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
+      dimensions['1'] = ids_stack.pop()
+      type_stack.pop()
+    elif id_string.count('[') == 2:
+      subscript2 = id_string[id_string.rfind('[') + 1:id_string.rfind(']')]
+      dimensions['2'] = ids_stack.pop()
+      type_stack.pop()
+      subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
+      dimensions['1'] = ids_stack.pop()
+      type_stack.pop()
   return dimensions, id_string
 
 def addVarToVarsTable(var_type, var_id, last_var):
