@@ -587,42 +587,17 @@ def getDimensions(var_id):
   id_string = str(var_id)
   dimensions = {}
   if id_string.count('[') == 1:
+    import pdb; pdb.set_trace()
     subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
-    if subscript.isdigit():
-      dimensions['1'] = int(subscript)
-    else:
-      scope = None
-      if subscript in function_directory[current_scope[0]].vars_table: # Current scope
-        scope = current_scope[0]
-      elif subscript in function_directory['principal'].vars_table: # Global
-        scope = 'principal'
-      dimensions['1'] = function_directory[scope].vars_table[subscript].memory_cell
-    id_string = id_string[:id_string.find('[')]
+    dimensions['1'] = 0
+    # type_stack.pop()
   elif id_string.count('[') == 2:
-    subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
-    if subscript.isdigit():
-      if subscript == 'x':
-        import pdb; pdb.set_trace()
-      dimensions['1'] = cte_directory[0][subscript].memory_cell
-    else:
-      scope = None
-      if subscript in function_directory[current_scope[0]].vars_table: # Current scope
-        scope = current_scope[0]
-      elif subscript in function_directory['principal'].vars_table: # Global
-        scope = 'principal'
-      dimensions['1'] = function_directory[scope].vars_table[subscript].memory_cell
-
     subscript2 = id_string[id_string.rfind('[') + 1:id_string.rfind(']')]
-    if subscript2.isdigit():
-      dimensions['2'] = cte_directory[0][subscript2].memory_cell
-    else:
-      scope = None
-      if subscript2 in function_directory[current_scope[0]].vars_table: # Current scope
-        scope = current_scope[0]
-      elif subscript2 in function_directory['principal'].vars_table: # Global
-        scope = 'principal'
-      dimensions['2'] = function_directory[scope].vars_table[subscript2].memory_cell
-    id_string = id_string[:id_string.find('[')]
+    dimensions['2'] = 0
+    # type_stack.pop()
+    subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
+    dimensions['1'] = 0
+    # type_stack.pop()
   return dimensions, id_string
 
 def addVarToVarsTable(var_type, var_id, last_var):
