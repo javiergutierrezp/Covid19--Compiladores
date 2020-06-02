@@ -310,7 +310,7 @@ def insertCteToStructs(cte, cte_type):
   else:
     ids_stack.append(cte)
 
-def insertIdToStack(identificator):
+def insertIdToStack(identificator, origin=None):
   offset = 0
   declaration_dimensions = {}
   var_id = identificator
@@ -340,17 +340,25 @@ def insertIdToStack(identificator):
     .format(len(declaration_dimensions),given_dimensions))
     quit()
   
-  if given_dimensions == 0:
+  if origin == 'asginacion':
+    if given_dimensions == 0:
+      if not SHOW_VIRTUAL:
+        offset =  "[offset de {}]".format(str(offset))
+      if scope == current_scope[0]:
+        type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
+        ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
+      else:
+        type_stack.append(function_directory['principal'].vars_table[var_id].type)
+        ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
+  else:
     if not SHOW_VIRTUAL:
       offset =  "[offset de {}]".format(str(offset))
-
     if scope == current_scope[0]:
       type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
       ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
     else:
       type_stack.append(function_directory['principal'].vars_table[var_id].type)
       ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
-    
     
 def insertOperator(operator):
   if SHOW_VIRTUAL:

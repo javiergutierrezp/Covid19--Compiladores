@@ -1881,7 +1881,7 @@ class covid19Parser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 309
             localctx._identificador_accesa = self.identificador_accesa()
-            insertIdToStack((None if localctx._identificador_accesa is None else self._input.getText(localctx._identificador_accesa.start,localctx._identificador_accesa.stop)))
+            insertIdToStack((None if localctx._identificador_accesa is None else self._input.getText(localctx._identificador_accesa.start,localctx._identificador_accesa.stop)), 'asignacion')
             self.state = 311
             localctx._IGUAL = self.match(covid19Parser.IGUAL)
             insertOperator((None if localctx._IGUAL is None else localctx._IGUAL.text))

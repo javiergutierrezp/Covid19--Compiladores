@@ -112,7 +112,7 @@ llamadametodo : ID {validateFunctionExistance($ID.text)} {insertERASize($ID.text
 regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {generateReturnQuad($megaexpresion.text)} PUNTOYCOMA
         ;
 
-asignacion : identificador_accesa {insertIdToStack($identificador_accesa.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
+asignacion : identificador_accesa {insertIdToStack($identificador_accesa.text, 'asignacion')} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
            ;
 
 identificador_accesa : ID (CORCHETECUADRADOI expresion {verify('1', $ID.text)} CORCHETECUADRADOD (CORCHETECUADRADOI expresion {verify('2', $ID.text)} CORCHETECUADRADOD)?)?
