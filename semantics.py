@@ -179,8 +179,7 @@ def addVarToFunctionParams(var, function_name):
   # print(function_directory)
   var_id = var[var.find(':')+1:]
   var_type = var[:var.find(':')]
-  dimensions, var_id = getDimensions(var_id)
-  function_directory[function_name].params.append(Variable(var_id, var_type, dimensions, None))
+  function_directory[function_name].params.append(Variable(var_id, var_type, {}, None))
 
 def incrementReceivedParamCounter():
   received_param_counter[0] += 1
@@ -221,7 +220,6 @@ def receivedFunctionParameters(function_name):
         ))
   received_param_counter[0] = 0
   
-
 def insertERASize(function_name):
   generateAndAppendQuad(getVirtualOperator("ERA"), function_name, None, None, False, None)
 
@@ -313,11 +311,13 @@ def insertCteToStructs(cte, cte_type):
     ids_stack.append(cte)
 
 def insertIdToStack(identificator):
-  # TODO: Diferenciar entre un arreglo y un no arreglo...
-  #CHECKING DIMMENSION ALREADY
   offset = 0
   declaration_dimensions = {}
-  given_dimensions, var_id = getDimensions(identificator)
+  var_id = identificator
+  if var_id.find('[') != -1:
+    var_id = var_id[:var_id.find('[')]
+  
+  import pdb; pdb.set_trace()
   
   scope = None
   if var_id in function_directory[current_scope[0]].vars_table: # Current scope
@@ -331,32 +331,16 @@ def insertIdToStack(identificator):
   declaration_dimensions = function_directory[scope].vars_table[var_id].dimensions;
 
   # Size of declaration dimensions  does not match given_dimensions
-  if len(declaration_dimensions) != len(given_dimensions):
+  given_dimensions = identificator.count('[')
+  if len(declaration_dimensions) != given_dimensions:
     raise EnvironmentError("""
     El arreglo que intentas accesar cuenta con {}
     dimension(es) y intentaste accesar una {} dimension. Los
     arreglos en Covid19-- sólo pueden ser accesados
     de manera individual (no por filas ni columnas)
     """
-    .format(len(declaration_dimensions),len(given_dimensions)))
+    .format(len(declaration_dimensions),given_dimensions))
     quit()
-  
-  # Make sure that the subscript is within the range of each of the dimensions
-  offset = 0
-  if given_dimensions != {}:
-    declaredDim1 = declaration_dimensions['1']
-    if given_dimensions['1'] > declaredDim1 or given_dimensions['1'] < 0:
-      raise EnvironmentError("Acceso en dimensión #1 fuera de rango")
-      quit()
-    else:
-      offset = given_dimensions['1']
-    if len(given_dimensions) == 2:
-      declaredDim2 = declaration_dimensions['2']
-      if given_dimensions['2'] > declaredDim2 or given_dimensions['2'] < 0:
-        raise EnvironmentError("Acceso en dimensión #2 fuera de rango")
-        quit()
-      else:
-        offset = given_dimensions['1'] * declaredDim2 + given_dimensions['2']
         
         
   
@@ -371,7 +355,6 @@ def insertIdToStack(identificator):
     type_stack.append(function_directory['principal'].vars_table[var_id].type)
     ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
     
-
 def insertOperator(operator):
   if SHOW_VIRTUAL:
     operators_stack.append(semantic_cube.id_of_oper[operator])
@@ -474,6 +457,62 @@ def incrementTempCounter(var_type):
   elif(var_type == "Dataframe"):
       return DATAFRAME_SIZE
 
+def verify(dimension, var_id):
+  dimension_virtual_memory = ids_stack.pop()
+  dimension_type = type_stack.pop()
+
+  scope = None
+  if var_id in function_directory[current_scope[0]].vars_table: # Current scope
+    scope = current_scope[0]
+  elif var_id in function_directory['principal'].vars_table: # Global
+    scope = 'principal'
+  else:
+    raise EnvironmentError("Hubo un error al intentar indexar '{}' ¿Tal vez uno de sus indices no fue declarado?".format(var_id))
+    quit()
+
+  upper_limit = function_directory[scope].vars_table[var_id].dimensions[dimension]
+
+  if dimension_type != 'int':
+    raise EnvironmentError("Intentamos indexar {} sin éxito, parece ser que no es de tipo 'int'".format(var_id))
+    quit()
+
+  generateAndAppendQuad(getVirtualOperator("VER"), dimension_virtual_memory, 0, upper_limit, False, 'int')
+  base = function_directory[scope].vars_table[var_id].memory_cell
+
+  num_dimensions = len(function_directory[scope].vars_table[var_id].dimensions)
+
+  if num_dimensions == 2:
+    if dimension == "1": # Primera de dos dimensiones
+      dim_2 = function_directory[scope].vars_table[var_id].dimensions['2']
+      generateAndAppendQuad(getVirtualOperator("*"), getVirtualCte(str(dim_2)), dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, 'int')
+    else: # Segunda de dos dimensiones
+      memory_offset_temp = ids_stack.pop()
+      generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, type_stack.pop())
+
+      memory_offset_temp = ids_stack.pop()
+      generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, 'lit({})'.format(base), 'meta({})'.format(getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1)), True, 'int')
+  else: # Primera de única dimensión
+    generateAndAppendQuad(getVirtualOperator("+"), 'lit({})'.format(base), dimension_virtual_memory, 'meta({})'.format(getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1)), True, 'int')
+
+  # ---- 1 ---
+  # base = 16001
+  # vm(1) está entre 0 y 1
+  # base + input_dim(1)
+
+  # ---- 2 ---
+  # base = 16001
+  # vm(2) está entre 0 y 4
+  # vm(1) está entre 0 y 1
+  # base + y(dim2) * input_dim(1) + input_dim(2)
+
+  import pdb; pdb.set_trace()
+    
+def insertCteToDirectory(cte, cte_type):
+  if cte not in cte_directory[0]:
+    cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte, 1)
+    cte_directory[0][str(cte)] = Constant(cte, cte_type, cte_virtual_memory)
+    virtual_cte_directory[0][cte_virtual_memory] = Constant(cte, cte_type, cte_virtual_memory)
+
 def generateReturnQuad(megaexpresion):
   print(megaexpresion)
   pq(quads)
@@ -552,6 +591,7 @@ def getDimensions(var_id):
     dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
     id_string = id_string[:id_string.find('[')]
   elif id_string.count('[') == 2:
+    import pdb; pdb.set_trace()
     dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
     dimensions['2'] = int(id_string[id_string.rfind('[') + 1:id_string.rfind(']')])
     id_string = id_string[:id_string.find('[')]

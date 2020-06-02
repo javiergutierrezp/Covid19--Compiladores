@@ -64,7 +64,7 @@ COMENTARIO: '/' .? '*/' -> skip;
 LINEACOMENTADA: '//' ~[\r\n]* -> skip;
 WS: [ \t\r\n\u000C]+ -> skip;
 
-nocondicional : DESDE identificador {insertIdToStack($identificador.text)} IGUAL {insertOperator($IGUAL.text)} expresion {leaving('asignacion')} HASTA expresion {forEvaluation()} HACER bloque {addGotoEnd('for')}
+nocondicional : DESDE identificador_accesa {insertIdToStack($identificador_accesa.text)} IGUAL {insertOperator($IGUAL.text)} expresion {leaving('asignacion')} HASTA expresion {forEvaluation()} HACER bloque {addGotoEnd('for')}
               ;
 
 condicional : MIENTRAS {addMigajitaDePan()} PARENTESISI megaexpresion {addGotoF()} PARENTESISD HAZ bloque {addGotoA()} {addGotoEnd('while')}
@@ -76,16 +76,16 @@ bloque : CORCHETEI (estatuto)+ CORCHETED
 decision : SI PARENTESISI megaexpresion {addGotoF()} PARENTESISD ENTONCES bloque {addGotoA()} (SINO  bloque)? {addGotoEnd('si')}
          ;     
 
-cargadatos : CARGAARCHIVO PARENTESISI ID COMA (identificador | cte) COMA (identificador | cte) COMA (identificador | cte) PARENTESISD
+cargadatos : CARGAARCHIVO PARENTESISI ID COMA (identificador_accesa | cte) COMA (identificador_accesa | cte) COMA (identificador_accesa | cte) PARENTESISD
            ;   
 
 cte : CTESTRING {insertCteToStructs($CTESTRING.text, 'string')} | CTEINT {insertCteToStructs($CTEINT.text, 'int')} | CTEFLOAT {insertCteToStructs($CTEFLOAT.text, 'float')} | CTECHAR {insertCteToStructs($CTECHAR.text, 'char')}
     ;
 
-lectura : LEE PARENTESISI ((identificador {readId($identificador.text)}) (COMA identificador {readId($identificador.text)})*) PARENTESISD
+lectura : LEE PARENTESISI ((identificador_accesa {readId($identificador_accesa.text)}) (COMA identificador_accesa {readId($identificador_accesa.text)})*) PARENTESISD
         ;
 
-escritura : ESCRIBE PARENTESISI (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}) (COMA (identificador {write($identificador.text)} | cte {write($cte.text)} | expresion {write(None)}))* PARENTESISD
+escritura : ESCRIBE PARENTESISI (identificador_accesa {write($identificador_accesa.text)} | cte {write($cte.text)} | expresion {write(None)}) (COMA (identificador_accesa {write($identificador_accesa.text)} | cte {write($cte.text)} | expresion {write(None)}))* PARENTESISD
           ;
 
 megaexpresion : superexpresion {leaving('union')} ((Y {insertOperator($Y.text)} | O {insertOperator($O.text)}) superexpresion {leaving('union')})*
@@ -100,7 +100,7 @@ expresion : termino {leaving('termino')} ((SUMA {insertOperator($SUMA.text)} | R
 termino : factor {leaving('factor')} ((MULTIPLICACION {insertOperator($MULTIPLICACION.text)} | DIVISION {insertOperator($DIVISION.text)}) factor {leaving('factor')})*
         ;      
 
-factor : identificador {insertIdToStack($identificador.text)} | cte | llamadametodo  | PARENTESISI {insertParenthesis()} megaexpresion PARENTESISD {deleteParenthesis()}
+factor : identificador_accesa {insertIdToStack($identificador_accesa.text)} | cte | llamadametodo  | PARENTESISI {insertParenthesis()} megaexpresion PARENTESISD {deleteParenthesis()}
        ;       
 
 estatuto : (llamadametodo PUNTOYCOMA | asignacion PUNTOYCOMA | lectura PUNTOYCOMA | escritura PUNTOYCOMA | cargadatos PUNTOYCOMA | decision | condicional | nocondicional | metodo | regresa)
@@ -112,19 +112,22 @@ llamadametodo : ID {validateFunctionExistance($ID.text)} {insertERASize($ID.text
 regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {generateReturnQuad($megaexpresion.text)} PUNTOYCOMA
         ;
 
-asignacion : identificador {insertIdToStack($identificador.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
+asignacion : identificador_accesa {insertIdToStack($identificador_accesa.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
            ;
 
-identificador : ID (CORCHETECUADRADOI CTEINT CORCHETECUADRADOD (CORCHETECUADRADOI CTEINT CORCHETECUADRADOD)?)?
-              ;           
+identificador_accesa : ID (CORCHETECUADRADOI expresion {verify('1', $ID.text)} CORCHETECUADRADOD (CORCHETECUADRADOI expresion {verify('2', $ID.text)} CORCHETECUADRADOD)?)?
+                     ;           
 
-programa : PROGRAMA identificador PUNTOYCOMA varx? {addFunctionToDirectory('principal', None)} {includeVarsTableInFunction('principal')} {addGotoPrincipal()} (metodo)* funcp
+identificador_definicion : ID (CORCHETECUADRADOI CTEINT {insertCteToDirectory($CTEINT.text, 'int')} CORCHETECUADRADOD (CORCHETECUADRADOI CTEINT {insertCteToDirectory($CTEINT.text, 'int')} CORCHETECUADRADOD)?)?
+                         ;
+
+programa : PROGRAMA identificador_accesa PUNTOYCOMA varx? {addFunctionToDirectory('principal', None)} {includeVarsTableInFunction('principal')} {addGotoPrincipal()} (metodo)* funcp
          ;     
 
-varx : VAR (var (COMA identificador {addVarToVarsTable(None, $identificador.text, $var.text)})* PUNTOYCOMA)+
+varx : VAR (var (COMA identificador_definicion {addVarToVarsTable(None, $identificador_definicion.text, $var.text)})* PUNTOYCOMA)+
      ;
 
-var : tipo DOSPUNTOS identificador {addVarToVarsTable($tipo.text, $identificador.text, None)}
+var : tipo DOSPUNTOS identificador_definicion {addVarToVarsTable($tipo.text, $identificador_definicion.text, None)}
     ;
 
 funcp : PRINCIPAL {setScope($PRINCIPAL.text)} PARENTESISI PARENTESISD bloque
