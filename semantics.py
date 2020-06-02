@@ -601,7 +601,9 @@ def getDimensions(var_id):
   elif id_string.count('[') == 2:
     subscript = id_string[id_string.find('[') + 1:id_string.find(']')]
     if subscript.isdigit():
-      dimensions['1'] = cte_directory[subscript].memory_cell
+      if subscript == 'x':
+        import pdb; pdb.set_trace()
+      dimensions['1'] = cte_directory[0][subscript].memory_cell
     else:
       scope = None
       if subscript in function_directory[current_scope[0]].vars_table: # Current scope
@@ -612,7 +614,7 @@ def getDimensions(var_id):
 
     subscript2 = id_string[id_string.rfind('[') + 1:id_string.rfind(']')]
     if subscript2.isdigit():
-      dimensions['2'] = cte_directory[subscript2].memory_cell
+      dimensions['2'] = cte_directory[0][subscript2].memory_cell
     else:
       scope = None
       if subscript2 in function_directory[current_scope[0]].vars_table: # Current scope
@@ -634,9 +636,9 @@ def addVarToVarsTable(var_type, var_id, last_var):
     final_type = var_type
   else:
     final_type = last_var[:last_var.find(':')]
-  print(var_id)
   dimensions, id_string = getDimensions(var_id)
-  import pdb; pdb.set_trace()
+  print(function_directory)
+  print(var_id, dimensions)
   required_space = getRequiredSpace(dimensions)
   var_directory[0][id_string] = Variable(id_string, final_type, dimensions, getVirtualMemoryFrom(current_scope[0], final_type, 'id', id_string, required_space))
 

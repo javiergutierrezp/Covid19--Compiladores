@@ -20,6 +20,7 @@ def main(argv):
 
     if parser.getNumberOfSyntaxErrors() == 0:
         # Print them quadsssss
+        # print(function_directory)
         pq(quads)
 
         # print(virtual_cte_directory)
