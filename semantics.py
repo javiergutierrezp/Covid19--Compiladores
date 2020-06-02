@@ -317,8 +317,6 @@ def insertIdToStack(identificator):
   if var_id.find('[') != -1:
     var_id = var_id[:var_id.find('[')]
   
-  import pdb; pdb.set_trace()
-  
   scope = None
   if var_id in function_directory[current_scope[0]].vars_table: # Current scope
     scope = current_scope[0]
@@ -341,19 +339,18 @@ def insertIdToStack(identificator):
     """
     .format(len(declaration_dimensions),given_dimensions))
     quit()
-        
-        
   
-  
-  if not SHOW_VIRTUAL:
-    offset =  "[offset de {}]".format(str(offset))
+  if given_dimensions == 0:
+    if not SHOW_VIRTUAL:
+      offset =  "[offset de {}]".format(str(offset))
 
-  if scope == current_scope[0]:
-    type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
-    ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
-  else:
-    type_stack.append(function_directory['principal'].vars_table[var_id].type)
-    ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
+    if scope == current_scope[0]:
+      type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
+      ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
+    else:
+      type_stack.append(function_directory['principal'].vars_table[var_id].type)
+      ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
+    
     
 def insertOperator(operator):
   if SHOW_VIRTUAL:
@@ -394,6 +391,8 @@ def getAllowedOperators(origin):
   return allowed_operators
 
 def leaving(origin):
+  if origin == 'asignacion':
+    print(ids_stack)
   allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
       operator = operators_stack.pop()
@@ -490,9 +489,9 @@ def verify(dimension, var_id):
       generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, type_stack.pop())
 
       memory_offset_temp = ids_stack.pop()
-      generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, 'lit({})'.format(base), 'meta({})'.format(getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1)), True, 'int')
+      generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, 'lit({})'.format(base), getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, 'int', True)
   else: # Primera de única dimensión
-    generateAndAppendQuad(getVirtualOperator("+"), 'lit({})'.format(base), dimension_virtual_memory, 'meta({})'.format(getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1)), True, 'int')
+    generateAndAppendQuad(getVirtualOperator("+"), 'lit({})'.format(base), dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, 'int', True)
 
   # ---- 1 ---
   # base = 16001
@@ -504,14 +503,12 @@ def verify(dimension, var_id):
   # vm(2) está entre 0 y 4
   # vm(1) está entre 0 y 1
   # base + y(dim2) * input_dim(1) + input_dim(2)
-
-  import pdb; pdb.set_trace()
     
 def insertCteToDirectory(cte, cte_type):
   if cte not in cte_directory[0]:
     cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte, 1)
-    cte_directory[0][str(cte)] = Constant(cte, cte_type, cte_virtual_memory)
-    virtual_cte_directory[0][cte_virtual_memory] = Constant(cte, cte_type, cte_virtual_memory)
+    cte_directory[0][str(cte)] = Constant(int(cte), cte_type, cte_virtual_memory)
+    virtual_cte_directory[0][cte_virtual_memory] = Constant(int(cte), cte_type, cte_virtual_memory)
 
 def generateReturnQuad(megaexpresion):
   print(megaexpresion)
@@ -558,7 +555,7 @@ def isGoto(operator):
   else:
     return 'GOTO' in operator or 'REGRESA' in operator or 'ENDFUNC' in operator or 'ERA' in operator or 'GOSUB' in operator
 
-def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type):
+def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, append_temp, result_type, meta=False):
   if isGoto(operator):
     new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
@@ -572,16 +569,17 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
       new_quad = Quad(operator, left_operand, right_operand, memory_cell)
       incrementVarCounter('temporary', result_type)
       if append_temp:
+        if meta:
+          memory_cell = 'meta({})'.format(memory_cell)
         ids_stack.append(memory_cell)
         type_stack.append(result_type)
+        
     else: # Asignacion
-      final_temp_num = temp_num
       if append_temp: # PARCHE GUADALUPANO
-        final_temp_num = function_directory['principal'].vars_table[left_operand].memory_cell
         function_return_type = function_directory['principal'].vars_table[left_operand].type
-        ids_stack.append(final_temp_num)
+        ids_stack.append(temp_num)
         type_stack.append(function_return_type)
-      new_quad = Quad(operator, left_operand, right_operand, final_temp_num)
+      new_quad = Quad(operator, left_operand, right_operand, temp_num)
     quads.append(new_quad)
 
 def getDimensions(var_id):
@@ -591,7 +589,6 @@ def getDimensions(var_id):
     dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
     id_string = id_string[:id_string.find('[')]
   elif id_string.count('[') == 2:
-    import pdb; pdb.set_trace()
     dimensions['1'] = int(id_string[id_string.find('[') + 1:id_string.find(']')])
     dimensions['2'] = int(id_string[id_string.rfind('[') + 1:id_string.rfind(']')])
     id_string = id_string[:id_string.find('[')]

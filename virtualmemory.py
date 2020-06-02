@@ -90,23 +90,31 @@ class VirtualMachine():
         elif scope == 'temporary':
             self.temporary_memory.set(value, runtime_memory_index, variable_type)
 
-    def accessMemory(self, virtual_memory):            
-        # print("Entreing access memory...")
-        runtime_memory_index, variable_type, scope = self.interpretVirtualMemory(virtual_memory)
-        # print("runtime_memory_index=({})\n variable_type=({})\n scope=({})\n".format(runtime_memory_index, variable_type, scope))
+    def accessMemory(self, virtual_memory):
+        final_virtual_memory = virtual_memory
         value = None
-        if scope != 'cte':
-            # print("about to get memory")
-            memory = self.accessScopeMemory(scope, runtime_memory_index, variable_type)
-            # print("***memory***")
-            # print(memory)
-            # print("about to get value")
-            value = self.accessTypeMemory(memory, variable_type, runtime_memory_index)
-            # print("***value***")
-            # print(value)
+
+        if type(virtual_memory) == str and 'lit' in virtual_memory:
+            value = int(virtual_memory[virtual_memory.find('(') + 1 :-1])
+        elif type(virtual_memory) == str and 'meta' in virtual_memory:
+            value = self.accessMemory(int(virtual_memory[virtual_memory.find('(') + 1:-1]))
         else:
-            value = self.getCte(virtual_memory)
-            # print("returned value from getCte = {}".format(value))
+            # print("Entreing access memory...")
+            runtime_memory_index, variable_type, scope = self.interpretVirtualMemory(virtual_memory)
+            # print("runtime_memory_index=({})\n variable_type=({})\n scope=({})\n".format(runtime_memory_index, variable_type, scope))
+            value = None
+            if scope != 'cte':
+                # print("about to get memory")
+                memory = self.accessScopeMemory(scope, runtime_memory_index, variable_type)
+                # print("***memory***")
+                # print(memory)
+                # print("about to get value")
+                value = self.accessTypeMemory(memory, variable_type, runtime_memory_index)
+                # print("***value***")
+                # print(value)
+            else:
+                value = self.getCte(virtual_memory)
+                # print("returned value from getCte = {}".format(value))
         return value
 
     def accessTypeMemory(self, memory, var_type, runtime_index):
@@ -148,7 +156,6 @@ class VirtualMachine():
             # print('instruction_pointer: {}'.format(instruction_pointer))
             # Leer quad
             current_quad = self.quads[instruction_pointer]
-            
             if current_quad.operator >= 0 and current_quad.operator <= 10 and current_quad.operator != 4: # Arithmetic operation
                 left_operand = self.accessMemory(current_quad.left_operand)
                 right_operand = self.accessMemory(current_quad.right_operand)
@@ -200,15 +207,22 @@ class VirtualMachine():
             elif current_quad.operator == 4:  # =
                 # print("found a =")
                 # if current_quad.left_operand == 6009 and current_quad.result_id == 0:
+                final_left_operand = None
                 if type(current_quad.left_operand) == int:
-                    left_operand = self.accessMemory(current_quad.left_operand)
+                    final_left_operand = self.accessMemory(current_quad.left_operand)
                 else:
-                    left_operand = self.accessMemory(self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell)
-                computed_value = left_operand
-                destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(current_quad.result_id)
-                # print(destination_runtime_memory_index, destination_variable_type, destination_scope)
-                # print("left = {}".format(left_operand))
-                # print("computed_value = {}".format(computed_value))
+                    if type(current_quad.left_operand) == str and 'meta' in current_quad.left_operand:
+                        final_left_operand = self.accessMemory(current_quad.left_operand)
+                    else:
+                        final_left_operand = self.accessMemory(self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell)
+                computed_value = final_left_operand
+
+                final_result_id = current_quad.result_id
+                if type(current_quad.result_id) == str and 'meta' in current_quad.result_id:
+                    final_result_id = self.accessMemory(current_quad.result_id)
+                
+                destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(final_result_id)
+
                 self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                 instruction_pointer += 1
             else:
@@ -240,6 +254,7 @@ class VirtualMachine():
                     instruction_pointer += 1
                 elif current_quad.operator == 18: # ENDFUNC
                     #Update the current memory(????????)
+                    import pdb; pdb.set_trace()
                     # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
                     self.local_memory.pop()
                     instruction_pointer = previousIP_stack.pop()
@@ -266,6 +281,11 @@ class VirtualMachine():
                     computed_value = self.accessMemory(current_quad.left_operand)
                     self.setMemorySegmentValue('local', computed_value, current_quad.result_id, destination_variable_type)
                     instruction_pointer += 1
+                elif current_quad.operator == 23: # VER
+                    computed_value = self.accessMemory(current_quad.left_operand)
+                    if computed_value < current_quad.right_operand or computed_value > current_quad.result_id:
+                        raise EnvironmentError('Index out of range')
+                    instruction_pointer += 1                 
 
         # printNotNone("global_memory.int_space", self.global_memory.int_space)
         # printNotNone("global_memory.float_space", self.global_memory.float_space)
