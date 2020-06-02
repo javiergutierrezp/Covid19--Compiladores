@@ -147,6 +147,7 @@ def getVirtualMemoryFrom(scope, var_type, param, extra, required_space):
   compilation_memory_cell = None
   if not SHOW_VIRTUAL:
     if param == 'temp_num':
+      print("getting a temp...")
       compilation_memory_cell = getVarCountFromType(final_scope, var_type);
     elif param == 'id':
       compilation_memory_cell = extra
@@ -206,7 +207,7 @@ def receivedFunctionParameters(function_name):
       if SHOW_VIRTUAL:
         generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, i, False, given_param_type)
       else:
-        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, "param{}".format(i + 1), False, given_param_type)
+        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, "{}(param{})".format(getVirtualMemoryFrom('temporary', given_param_type, 'temp_num', None, 1),i + 1), False, given_param_type)
       if definition_param_type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 
@@ -343,7 +344,6 @@ def insertIdToStack(identificator):
   if given_dimensions == 0:
     if not SHOW_VIRTUAL:
       offset =  "[offset de {}]".format(str(offset))
-
     if scope == current_scope[0]:
       type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
       ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
@@ -572,13 +572,19 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
           memory_cell = 'meta({})'.format(memory_cell)
         ids_stack.append(memory_cell)
         type_stack.append(result_type)
-        
     else: # Asignacion
       if append_temp: # PARCHE GUADALUPANO
-        function_return_type = function_directory['principal'].vars_table[left_operand].type
-        ids_stack.append(temp_num)
-        type_stack.append(function_return_type)
-      new_quad = Quad(operator, left_operand, right_operand, temp_num)
+        final_temp_num = None
+        if SHOW_VIRTUAL:
+          function_return_type = function_directory['principal'].vars_table[left_operand].type
+          final_temp_num = temp_num
+        else:
+          function_return_type = result_type
+          final_temp_num = "t{}{}".format(result_type[0], temp_num)
+      ids_stack.append(final_temp_num)
+      type_stack.append(function_return_type)
+      new_quad = Quad(operator, left_operand, right_operand, final_temp_num)
+      incrementVarCounter('temporary', function_return_type)
     quads.append(new_quad)
 
 def getDimensions(var_id):

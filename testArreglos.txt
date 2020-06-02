@@ -20,6 +20,6 @@ float: b;
 }
 
 principal() {
-    emilio();
-    escribe("holaaa");
+    b[0] = 10;
+    escribe(b[0]);
 }
