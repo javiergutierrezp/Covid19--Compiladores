@@ -12,7 +12,9 @@ string: ejemplo2;
 
 funcion aritmetica ();
 {
+   escribe("entrando a aritmetica");
    c = 10;
+   x = 15;
    g2 = 5 * (3 + (10 / 2) - c);
    escribe(x);
    g = x + c;
@@ -21,75 +23,89 @@ funcion aritmetica ();
    escribe(g2);
 }
 
-funcion siJala ();
+funcion comparaciones1 ();
 {
+   escribe("entrando a comparaciones1)
    c = 5;
    a = 5;
    g = a == c;
+   scribe("5 == 5");
    escribe(g);
 
    c = 5;
    a = 4;
    g = a > c;
+   scribe("4 > 5");
    escribe(g);
 
    c = 5;
    a = 4;
    g = a < c;
+   scribe("4 < 5");
    escribe(g);
 
    c = 5;
    a = 4;
    g = a != c;
+   scribe("4 != 5");
    escribe(g);
 
    c = 5;
    a = 5;
    g = a >= c;
+   escribe("5 >= 5");
    escribe(g);
 
    c = 5;
    a = 5;
    g = a <= c;
+   escribe("5 <= 5");
    escribe(g);
 
    a = 1;
    c = 1;
    g = a && c;
-   escribe("casi antepenultimo ", g);
+   escribe("1 && 1");
+   escribe(g);
    
    a = 0;
    c = 0;
    g = a || c;
-   escribe("penultimo ", g);
+   escribe("0 || 0:");
+   escribe(g);
 }
 
 funcion comparaciones ();
 {
-    
-
+   escribe("entrando a comparaciones");
     a = 1;
     c = 0;
     g = a || c;
-    escribe("antepenultimo ", g);
-
-    
+    escribe("1 || 0:");
+    escribe(g);
 
     a = 0;
     c = 1;
     g = a && c;
-    escribe("ultimo ", g); 
+    escribe("1 && 0:");
+    escribe(g);
 }
 
-funcion strings ();
+funcion string concatenaStrings (string : a, string : b);
 {
-   ejemplo = "hola";
-   ejemplo1 = "como estas";
-   ejemplo2 = ejemplo + ejemplo1;
-   escribe(ejemplo2);
+   regresa(a + b);
+}
+
+funcion concatenaChars ();
+{
+   ejemplo = 'j' + 'k';
+   escribe(ejemplo);
 }
 
 principal ()
 {
+   concatenaChars();
+   escribe(concatenaStrings("hola", " mundo"));
+   escribe("concatenaStrings");
    comparaciones();
 };

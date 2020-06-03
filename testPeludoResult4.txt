@@ -1,3 +1,0 @@
-> /Users/morris/dev/Covid19--Compiladores/semantics.py(212)receivedFunctionParameters()
--> if SHOW_VIRTUAL:
-(Pdb) (Pdb) 

@@ -3,20 +3,27 @@ var
 int: a;
 int: b[4], c[6];
 int: d;
+int: i;
+
+funcion string concatenaStrings (string : a, string : b);
+{
+   regresa(a + b);
+}
 
 funcion int emilio ();
 var
 int: x;
 int: y[4][2];
 int: a;
-float: z[6];
+string: strings[6];
 float: b;
 {
     b = 1.5;
     x = 2;
     y[x][1] = 9;
     y[3][1] = 3;
-    a = y[x][1];
+    escribe("Valor de elemento y[x][1]:")
+    escribe(y[x][1])
 }
 
 principal() {

@@ -1,0 +1,33 @@
+Programa Covid19;
+var
+int : a, aa[3], aaa[3][2];
+float : b;
+string : c;
+char : d;
+
+principal () 
+{
+  lee(a);
+  escribe("Imprimiento a lo que se le acaba de dar input")
+  escribe(a);
+
+  lee(b);
+  escribe("Imprimiento a lo que se le acaba de dar input")
+  escribe(b);
+
+  lee(c);
+  escribe("Imprimiento a lo que se le acaba de dar input")
+  escribe(c);
+
+  lee(d);
+  escribe("Imprimiento a lo que se le acaba de dar input")
+  escribe(d);
+
+  lee(aa[1]);
+  escribe("Imprimiento a lo que se le acaba de dar input")
+  escribe(aa[1]);
+
+  lee(aaa[0][0]);
+  escribe("Imprimiento a lo que se le acaba de dar input")
+  escribe(aaa[0][0]);
+}
