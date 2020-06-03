@@ -25,8 +25,8 @@ def main(argv):
         # Print them quadsssss
         pq(quads)
 
-        # print(virtual_cte_directory)
-        print(function_directory)
+        print(compilation_memory)
+        # print(function_directory)
 
         if SHOW_VIRTUAL:
             # Crear MV etc etc

@@ -424,24 +424,53 @@ def readId(identificator):
     raise EnvironmentError("The ID {}, that was intended to be received in 'lee()', was not found. Perhaps it hasn't been declared yet?".format(identificator))
 
 def write(id_or_cte):
-  #TODO: Necesitamos traducir estas id's y CTE's a memory cells
-  # Determinar si es una variable o un string
   if not id_or_cte: # expresion
     generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop(), None, None, False, "string")
     type_stack.pop()
-  elif id_or_cte[0] == "'" or id_or_cte[0] == '"': # String
+  elif id_or_cte[0] == "'" or id_or_cte[0] == '"': # string
     if SHOW_VIRTUAL:
       generateAndAppendQuad(getVirtualOperator('ESCRIBE'), ids_stack.pop() , None, None, False, "string")
     else:
       generateAndAppendQuad(getVirtualOperator('ESCRIBE'), id_or_cte, None, None, False, "string")
     type_stack.pop()
   else:
-    if id_or_cte in function_directory[current_scope[0]].vars_table: #local
-      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory[current_scope[0]].vars_table[id_or_cte].memory_cell, None, None, False, "string")
-    elif id_or_cte in function_directory['principal'].vars_table: #global
-      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory['principal'].vars_table[id_or_cte].memory_cell, None, None, False, "string")
-    else: #no existe
-      raise EnvironmentError("The ID {}, that was intended to be written, was not found. Perhaps it hasn't been declared yet?".format(id_or_cte))
+    var_id = id_or_cte
+    if var_id.find('[') != -1: # Array
+      var_id = var_id[:var_id.find('[')]
+
+      scope = None
+      if var_id in function_directory[current_scope[0]].vars_table: # Current scope
+        scope = current_scope[0]
+      elif var_id in function_directory['principal'].vars_table: # Global
+        scope = 'principal'
+      else:
+        raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(var_id))
+        quit()
+      
+      given_dimensions = id_or_cte.count('[')
+
+      declaration_dimensions = function_directory[scope].vars_table[var_id].dimensions
+      declaration_type = function_directory[scope].vars_table[var_id].type
+      declaration_base = function_directory[scope].vars_table[var_id].memory_cell
+
+      given_memory_cell = None
+
+      if given_dimensions == 1:
+        dim_1 = int(id_or_cte[id_or_cte.find('[') + 1:id_or_cte.find(']')])
+        given_memory_cell = declaration_base + dim_1
+      else:
+        dim_1 = int(id_or_cte[id_or_cte.find('[') + 1:id_or_cte.find(']')])
+        dim_2 = int(id_or_cte[id_or_cte.rfind('[') + 1:id_or_cte.rfind(']')])
+        given_memory_cell = dim_1 * declaration_dimensions['2'] + declaration_base + dim_2
+
+      generateAndAppendQuad(getVirtualOperator('ESCRIBE'), given_memory_cell, None, None, False, declaration_type)
+    else: # Not an array
+      if var_id in function_directory[current_scope[0]].vars_table: #local
+        generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory[current_scope[0]].vars_table[var_id].memory_cell, None, None, False, "string")
+      elif var_id in function_directory['principal'].vars_table: #global
+        generateAndAppendQuad(getVirtualOperator('ESCRIBE'), function_directory['principal'].vars_table[var_id].memory_cell, None, None, False, "string")
+      else: #no existe
+        raise EnvironmentError("The ID {}, that was intended to be written, was not found. Perhaps it hasn't been declared yet?".format(var_id))
 
 def incrementTempCounter(var_type):
   if(var_type == "string"):
@@ -573,13 +602,12 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
         ids_stack.append(memory_cell)
         type_stack.append(result_type)
     else: # Asignacion
+      final_temp_num = temp_num
+      function_return_type = result_type
       if append_temp: # PARCHE GUADALUPANO
-        final_temp_num = None
         if SHOW_VIRTUAL:
           function_return_type = function_directory['principal'].vars_table[left_operand].type
-          final_temp_num = temp_num
         else:
-          function_return_type = result_type
           final_temp_num = "t{}{}".format(result_type[0], temp_num)
       ids_stack.append(final_temp_num)
       type_stack.append(function_return_type)
@@ -637,6 +665,7 @@ def addFunctionToDirectory(function_id, function_type):
     function_directory['principal'].vars_table[function_id] = Variable(function_id, function_type, {}, compilation_memory['global'][function_type].incrementUsedSpace(1))
 
 def includeVarsTableInFunction(id):
+  print("{} vars_table before deleting it: {}".format(id, var_directory[0]))
   function_directory[id].vars_table = var_directory[0]
   var_directory[0] = {}
 

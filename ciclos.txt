@@ -1,0 +1,84 @@
+Programa patito;
+var
+int: i, j, k;
+float: f;
+
+funcion desdeDoble (int : a, int : b);
+{
+    desde i = 0 hasta 5 hacer {
+        desde j = 0 hasta 5 hacer {
+            escribir(i, j);
+        }
+    }
+
+}
+
+funcion desdeMientras (int : a, int : b);
+{
+    j = 10
+    desde i = 0 hasta 5 hacer {
+        mientras j > 5 haz {
+            escribe(i, j);
+            j = j - 1;
+        }
+    }
+}
+
+funcion desdeSi (int : a, int : b);
+{
+    j = 10
+    desde i = 0 hasta 5 hacer {
+        si (i == 2) entonces {
+            escribe("es dos");
+        }
+        sino {
+            escribe(es otra cosa);
+        }
+    }
+}
+
+funcion mientrasDesde (int : a, int : b);
+{
+    j = 0;
+    mientras j > 5 haz {
+        desde i = 0 hasta 5 hacer {
+            escribe (j, i);
+        }
+        j = j * 1;
+    }
+}
+
+funcion mientrasDoble (int : a, int : b);
+{
+    j = 0;
+    i = 0;
+    mientras j < 5 haz {
+        mientras i < 5 hasta 5 hacer {
+            escribe (j, i);
+            i = i + 1;
+        }
+        j = j + 1;
+    }
+}
+
+funcion mientrasSi (int : a, int : b);
+{
+    j = 10;
+    mientras j > 5 haz {
+        si (j == 6) entonces {
+            escribe ("es seis");
+        }
+        sino {
+            escribe ("es otra cosa");
+        }
+        j = j - 1;
+    }
+}
+
+
+principal() {
+    i = 2;
+    k = i+1;
+    f = 3.14;
+    dos (i+k, f*3);
+};

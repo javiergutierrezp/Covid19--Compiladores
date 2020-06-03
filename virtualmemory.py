@@ -211,7 +211,6 @@ class VirtualMachine():
                 if type(current_quad.left_operand) == int:
                     final_left_operand = self.accessMemory(current_quad.left_operand)
                 else:
-                    # import pdb; pdb.set_trace()
                     if type(current_quad.left_operand) == str and 'meta' in current_quad.left_operand:
                         final_left_operand = self.accessMemory(self.accessMemory(current_quad.left_operand))
                     else:
@@ -254,8 +253,6 @@ class VirtualMachine():
                     self.local_memory.append(RuntimeMemorySegment(var_count))
                     instruction_pointer += 1
                 elif current_quad.operator == 18: # ENDFUNC
-                    #Update the current memory(????????)
-                    # import pdb; pdb.set_trace()
                     print(self.local_memory[len(self.local_memory) - 1].int_space)
                     # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
                     self.local_memory.pop()
@@ -285,7 +282,8 @@ class VirtualMachine():
                     instruction_pointer += 1
                 elif current_quad.operator == 23: # VER
                     computed_value = self.accessMemory(current_quad.left_operand)
-                    if computed_value < current_quad.right_operand or computed_value > current_quad.result_id:
+                    # import pdb; pdb.set_trace()
+                    if computed_value < current_quad.right_operand or computed_value >= current_quad.result_id:
                         raise EnvironmentError('Index out of range')
                     instruction_pointer += 1                 
 

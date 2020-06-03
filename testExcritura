@@ -7,10 +7,10 @@ char : d;
 
 principal () 
 {
-  lee(a);
-  lee(b);
-  lee(c);
-  lee(d);
-  lee(aa[1]);
-  lee(aaa[0][0]);
+  escribe(a);
+  escribe(b);
+  escribe(c);
+  escribe(d);
+  escribe(aa[1]);
+  escribe(aaa[0][0]);
 }
