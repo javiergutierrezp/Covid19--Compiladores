@@ -1,0 +1,15 @@
+Programa Covid19;
+
+funcion int fact(int : n);
+{
+  si (n <= 1) entonces {
+    regresa(1);
+  } sino {
+    regresa( n * fact(n-1) );
+  }        
+}
+
+principal () 
+{
+  fact(4);
+}

@@ -13,12 +13,13 @@ float: z[6];
 float: b;
 {
     b = 1.5;
-    y[1][1] = 3;
+    x = 2;
+    y[x][1] = 9;
     y[3][1] = 3;
-    a = y[1][1];
+    a = y[x][1];
 }
 
 principal() {
-    emilio();
-    escribe("holaaa");
+    b[0] = 10;
+    escribe(b[0]);
 }

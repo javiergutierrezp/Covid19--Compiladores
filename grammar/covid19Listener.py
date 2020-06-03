@@ -164,12 +164,21 @@ class covid19Listener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by covid19Parser#identificador.
-    def enterIdentificador(self, ctx:covid19Parser.IdentificadorContext):
+    # Enter a parse tree produced by covid19Parser#identificador_accesa.
+    def enterIdentificador_accesa(self, ctx:covid19Parser.Identificador_accesaContext):
         pass
 
-    # Exit a parse tree produced by covid19Parser#identificador.
-    def exitIdentificador(self, ctx:covid19Parser.IdentificadorContext):
+    # Exit a parse tree produced by covid19Parser#identificador_accesa.
+    def exitIdentificador_accesa(self, ctx:covid19Parser.Identificador_accesaContext):
+        pass
+
+
+    # Enter a parse tree produced by covid19Parser#identificador_definicion.
+    def enterIdentificador_definicion(self, ctx:covid19Parser.Identificador_definicionContext):
+        pass
+
+    # Exit a parse tree produced by covid19Parser#identificador_definicion.
+    def exitIdentificador_definicion(self, ctx:covid19Parser.Identificador_definicionContext):
         pass
 
 
