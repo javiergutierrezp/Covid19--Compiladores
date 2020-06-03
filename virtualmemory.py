@@ -171,8 +171,6 @@ class VirtualMachine():
                     # print("found a /")
                     computed_value = left_operand / right_operand
                 elif current_quad.operator == 2:  # +
-                    # print("found a +")
-                    # print(left_operand, right_operand)
                     computed_value = left_operand + right_operand
                 elif current_quad.operator == 3:  # -
                     # print("found a -")
@@ -197,10 +195,8 @@ class VirtualMachine():
                     computed_value = boolToInt(left_operand <= right_operand)
                 elif current_quad.operator == 11: # AND
                     computed_value = boolToInt(left_operand and right_operand)
-                    print("in and, {} vs {} = {}".format(left_operand, right_operand, computed_value))
                 elif current_quad.operator == 12: # OR
                     computed_value = boolToInt(left_operand or right_operand)
-                    print("in or, {} vs {} = {}".format(left_operand, right_operand, computed_value))
                 self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                 instruction_pointer += 1
             elif current_quad.operator == 4:  # =
@@ -250,7 +246,6 @@ class VirtualMachine():
                     self.local_memory.append(RuntimeMemorySegment(var_count))
                     instruction_pointer += 1
                 elif current_quad.operator == 18: # ENDFUNC
-                    print(self.local_memory[len(self.local_memory) - 1].int_space)
                     # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
                     self.local_memory.pop()
                     instruction_pointer = previousIP_stack.pop()

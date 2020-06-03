@@ -298,6 +298,10 @@ def insertCteToStructs(cte, cte_type):
       value = int(cte)
     elif cte_type == 'float':
       value = float(cte)
+    elif cte_type == 'string':
+      value = value.replace('"', '')
+    elif cte_type == 'char':
+      value = value.replace("'", '')
       
     cte_directory[0][str(cte)] = Constant(value, cte_type, cte_virtual_memory)
     virtual_cte_directory[0][cte_virtual_memory] = Constant(value, cte_type, cte_virtual_memory)
@@ -555,6 +559,8 @@ def verify(dimension, var_id):
   # base + y(dim2) * input_dim(1) + input_dim(2)
     
 def insertCteToDirectory(cte, cte_type):
+  cte.replace('"', '')
+  cte.replace("'", '')
   if cte not in cte_directory[0]:
     cte_virtual_memory = getVirtualMemoryFrom('cte', cte_type, 'cte', cte, 1)
     cte_directory[0][str(cte)] = Constant(int(cte), cte_type, cte_virtual_memory)

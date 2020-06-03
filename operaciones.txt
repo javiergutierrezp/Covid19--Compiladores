@@ -57,7 +57,7 @@ funcion siJala ();
    c = 1;
    g = a && c;
    escribe("casi antepenultimo ", g);
-
+   
    a = 0;
    c = 0;
    g = a || c;

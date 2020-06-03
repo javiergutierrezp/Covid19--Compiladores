@@ -55,7 +55,7 @@ O: '||';
 CTEINT: [0-9]+;
 CTEFLOAT: [0-9]+ '.' [0-9]+;
 CTESTRING: '"' .*? '"';
-CTECHAR: '"."';
+CTECHAR: '\'' . '\'';
 
 ID: [_A-Za-z]([_A-Za-z0-9])*;
 

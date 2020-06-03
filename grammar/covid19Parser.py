@@ -240,8 +240,7 @@ class covid19Parser ( Parser ):
                      "'hasta'", "'hacer'", "'mientras'", "'haz'", "';'", 
                      "','", "':'", "'{'", "'}'", "'='", "'('", "')'", "'['", 
                      "']'", "'>'", "'<'", "'>='", "'<='", "'=='", "'!='", 
-                     "'!'", "'+'", "'-'", "'*'", "'/'", "'&&'", "'||'", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "'\".\"'" ]
+                     "'!'", "'+'", "'-'", "'*'", "'/'", "'&&'", "'||'" ]
 
     symbolicNames = [ "<INVALID>", "INT", "FLOAT", "STRING", "CHAR", "DATAFRAME", 
                       "VAR", "FUNCION", "CARGAARCHIVO", "SI", "ENTONCES", 
