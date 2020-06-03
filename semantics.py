@@ -199,14 +199,18 @@ def receivedFunctionParameters(function_name):
       received_param_counter[0]
     ))
   # param_number = 0;
-  # import pdb; pdb.set_trace()
   for i in reversed(range(0, len(function_directory[function_name].params))):
       definition_param_type = function_directory[function_name].params[i].type
+      given_param = ids_stack.pop()
       given_param_type = type_stack.pop()
+      print("Match... given({}), definition({}) (i: {})".format(given_param,function_directory[function_name].params[i], i))
       if SHOW_VIRTUAL:
-        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, i, False, given_param_type)
+        if i != 0:
+          generateAndAppendQuad(getVirtualOperator('PARAM'), given_param, None, i, False, given_param_type)
+        else:
+          generateAndAppendQuad(getVirtualOperator('PARAM'), given_param, None, None, False, given_param_type)
       else:
-        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, "{}(param{})".format(getVirtualMemoryFrom('temporary', given_param_type, 'temp_num', None, 1),i + 1), False, given_param_type)
+        generateAndAppendQuad(getVirtualOperator('PARAM'), given_param, None, "{}(param{})".format(getVirtualMemoryFrom('temporary', given_param_type, 'temp_num', None, 1),i + 1), False, given_param_type)
       if definition_param_type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 

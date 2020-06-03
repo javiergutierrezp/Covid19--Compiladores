@@ -1,12 +1,19 @@
 Programa Covid19;
+var
+int: g;
 
-funcion uno (int : a, float: b);
+funcion int uno (int : a, int: b);
+var
+int: c;
 {
+  c = 15;
   escribe(a);
   escribe(b);
+  regresa (b);
 }
 
 principal ()
 {
-  uno(10, 20.5);
+  g = uno(10, 20);
+  escribe(g);
 }
