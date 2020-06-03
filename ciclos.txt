@@ -3,68 +3,88 @@ var
 int: i, j, k;
 float: f;
 
-funcion desdeDoble (int : a, int : b);
+funcion desdeDoble ();
 {
+    escribe("------ desdeDoble inicia ------");
     desde i = 0 hasta 5 hacer {
+        escribe("entrando a primer desde");
         desde j = 0 hasta 5 hacer {
-            escribir(i, j);
+            escribe("entrando a segundo desde");
+            escribe(i, j);
         }
     }
-
+    escribe("------- desdeDoble acaba -------");
 }
 
-funcion desdeMientras (int : a, int : b);
+funcion desdeMientras ();
 {
-    j = 10
-    desde i = 0 hasta 5 hacer {
-        mientras j > 5 haz {
+    escribe("------ desdeMientras inicia ------");
+    desde i = 0 hasta 3 hacer {
+        escribe("entrando a desde");
+        j = 3;
+        mientras (j >= 0) haz {
+            escribe("entrando a mientras");
             escribe(i, j);
             j = j - 1;
         }
     }
+    escribe("------- desdeMientras acaba -------");
 }
 
-funcion desdeSi (int : a, int : b);
+funcion desdeSi ();
 {
-    j = 10
+    escribe("------ desdeSi inicia ------");
+    j = 10;
     desde i = 0 hasta 5 hacer {
+        escribe("entrando a desde");
         si (i == 2) entonces {
             escribe("es dos");
         }
         sino {
-            escribe(es otra cosa);
+            escribe("es otra cosa");
         }
     }
+    escribe("------- desdeSi acaba -------");
 }
 
-funcion mientrasDesde (int : a, int : b);
+funcion mientrasDesde ();
 {
-    j = 0;
-    mientras j > 5 haz {
+    escribe("------ mientrasDesde inicia ------");
+    j = 8;
+    mientras (j > 5) haz {
+        escribe("entrando a mientras");
         desde i = 0 hasta 5 hacer {
+            escribe("entrando a desde");
             escribe (j, i);
         }
-        j = j * 1;
+        j = j - 1;
     }
+    escribe("------- mientrasDesde acaba -------");
 }
 
-funcion mientrasDoble (int : a, int : b);
+funcion mientrasDoble ();
 {
+    escribe("------ mientrasDoble inicia ------");
     j = 0;
     i = 0;
-    mientras j < 5 haz {
-        mientras i < 5 hasta 5 hacer {
+    mientras (j < 5) haz {
+        escribe("entrando a mientras externo");
+        mientras (i < 5) haz {
+            escribe("entrando a mientras interno");
             escribe (j, i);
             i = i + 1;
         }
         j = j + 1;
     }
+    escribe("------- mientrasDoble acaba -------");
 }
 
-funcion mientrasSi (int : a, int : b);
+funcion mientrasSi ();
 {
+    escribe("------ mientrasSi inicia ------");
     j = 10;
-    mientras j > 5 haz {
+    mientras (j > 5) haz {
+        escribe("entrando a mientras");
         si (j == 6) entonces {
             escribe ("es seis");
         }
@@ -73,12 +93,15 @@ funcion mientrasSi (int : a, int : b);
         }
         j = j - 1;
     }
+    escribe("------- mientrasSi acaba -------");
 }
 
 
 principal() {
-    i = 2;
-    k = i+1;
-    f = 3.14;
-    dos (i+k, f*3);
-};
+    desdeDoble();
+    desdeMientras();
+    desdeSi();
+    mientrasDesde();
+    mientrasDoble();
+    mientrasSi();
+}
