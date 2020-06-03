@@ -156,7 +156,7 @@ class VirtualMachine():
             # print('instruction_pointer: {}'.format(instruction_pointer))
             # Leer quad
             current_quad = self.quads[instruction_pointer]
-            if current_quad.operator >= 0 and current_quad.operator <= 10 and current_quad.operator != 4: # Arithmetic operation
+            if current_quad.operator >= 0 and current_quad.operator <= 12 and current_quad.operator != 4: # Arithmetic operation
                 left_operand = self.accessMemory(current_quad.left_operand)
                 right_operand = self.accessMemory(current_quad.right_operand)
                 destination_runtime_memory_index,\
@@ -196,17 +196,14 @@ class VirtualMachine():
                     # print("found a <=")
                     computed_value = boolToInt(left_operand <= right_operand)
                 elif current_quad.operator == 11: # AND
-                    # print("found a AND")
-                    current_value = boolToInt(left_operand and right_operand)
+                    computed_value = boolToInt(left_operand and right_operand)
+                    print("in and, {} vs {} = {}".format(left_operand, right_operand, computed_value))
                 elif current_quad.operator == 12: # OR
-                    # print("found a OR")
-                    current_value = boolToInt(left_operand or right_operand)
-                # print("computed value = {}".format(computed_value))
+                    computed_value = boolToInt(left_operand or right_operand)
+                    print("in or, {} vs {} = {}".format(left_operand, right_operand, computed_value))
                 self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                 instruction_pointer += 1
             elif current_quad.operator == 4:  # =
-                # print("found a =")
-                # if current_quad.left_operand == 6009 and current_quad.result_id == 0:
                 final_left_operand = None
                 if type(current_quad.left_operand) == int:
                     final_left_operand = self.accessMemory(current_quad.left_operand)
@@ -284,7 +281,6 @@ class VirtualMachine():
                     instruction_pointer += 1
                 elif current_quad.operator == 23: # VER
                     computed_value = self.accessMemory(current_quad.left_operand)
-                    # import pdb; pdb.set_trace()
                     if computed_value < current_quad.right_operand or computed_value >= current_quad.result_id:
                         raise EnvironmentError('Index out of range')
                     instruction_pointer += 1                 
@@ -372,7 +368,10 @@ def prettyDisplay(var_type, value):
     if var_type == 'char':
         return "'{}'".format(value)
     elif var_type == 'string':
-        return '"{}"'.format(value)
+        if value[0] != '"':
+            return '"{}"'.format(value)
+        else:
+            return value
     else:
         return value
 

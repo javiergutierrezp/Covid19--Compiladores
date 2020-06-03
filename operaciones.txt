@@ -13,7 +13,7 @@ string: ejemplo2;
 funcion aritmetica ();
 {
    c = 10;
-   x = 5 * (3 + (10 / 2) - c)
+   g2 = 5 * (3 + (10 / 2) - c);
    escribe(x);
    g = x + c;
    escribe(g);
@@ -21,8 +21,7 @@ funcion aritmetica ();
    escribe(g2);
 }
 
-funcion comparaciones ();
-var
+funcion siJala ();
 {
    c = 5;
    a = 5;
@@ -54,35 +53,43 @@ var
    g = a <= c;
    escribe(g);
 
-    a = 1;
-    c = 1;
-    g = a && c;
-    escribe(g);
+   a = 1;
+   c = 1;
+   g = a && c;
+   escribe("casi antepenultimo ", g);
+
+   a = 0;
+   c = 0;
+   g = a || c;
+   escribe("penultimo ", g);
+}
+
+funcion comparaciones ();
+{
+    
 
     a = 1;
     c = 0;
     g = a || c;
-    escribe(g);
+    escribe("antepenultimo ", g);
 
-    a = 0;
-    c = 0;
-    g = a || c;
-    escribe(g);
+    
 
     a = 0;
     c = 1;
     g = a && c;
-    escribe(g); 
+    escribe("ultimo ", g); 
 }
 
 funcion strings ();
 {
-   ejemplo = "hola"
-   ejemplo1 = "como estas"
+   ejemplo = "hola";
+   ejemplo1 = "como estas";
    ejemplo2 = ejemplo + ejemplo1;
+   escribe(ejemplo2);
 }
 
-principal () 
+principal ()
 {
-   
+   comparaciones();
 };

@@ -1,0 +1,22 @@
+Programa Covid19;
+var
+int : c;
+int : a;
+int : g;
+funcion comparaciones ();
+{
+    a = 1;
+    c = 0;
+    g = a || c;
+    escribe("antepenultimo ", g);
+
+    a = 0;
+    c = 1;
+    g = a && c;
+    escribe("ultimo ", g); 
+}
+
+principal ()
+{
+   comparaciones();
+};

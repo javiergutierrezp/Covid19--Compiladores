@@ -49,8 +49,8 @@ SUMA: '+';
 RESTA: '-';
 MULTIPLICACION: '*';
 DIVISION: '/';
-Y: '&';
-O: '|';
+Y: '&&';
+O: '||';
 
 CTEINT: [0-9]+;
 CTEFLOAT: [0-9]+ '.' [0-9]+;

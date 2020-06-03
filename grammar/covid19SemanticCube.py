@@ -81,6 +81,20 @@ class semanticCube():
                     "char": "Error: No se puede comparar un Int con un Char.",
                     "string": "Error: No se puede comparar un Int con un String.",
                     "Dataframe": "Error: No se puede comparar un Int con un Dataframe."
+                },
+                "&&" : {
+                    "int": "int",
+                    "float": "Error: No se puede comparar un Int con un Float.",
+                    "char": "Error: No se puede comparar un Int con un Char.",
+                    "string": "Error: No se puede comparar un Int con un String.",
+                    "Dataframe": "Error: No se puede comparar un Int con un Dataframe."
+                },
+                "||" : {
+                    "int": "int",
+                    "float": "Error: No se puede comparar un Int con un Float.",
+                    "char": "Error: No se puede comparar un Int con un Char.",
+                    "string": "Error: No se puede comparar un Int con un String.",
+                    "Dataframe": "Error: No se puede comparar un Int con un Dataframe."
                 }
             },
             ######################### FLOAT #############################
@@ -158,6 +172,20 @@ class semanticCube():
                 "!=" : {
                     "int": "int",
                     "float": "int",
+                    "char": "Error: No se puede comparar un Float con un Char.",
+                    "string": "Error: No se puede comparar un Float con un String.",
+                    "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
+                },
+                "&&" : {
+                    "int": "Error: No se puede comparar un Float con un Int.",
+                    "float": "Error: No se puede comparar un Float con un Float.",
+                    "char": "Error: No se puede comparar un Float con un Char.",
+                    "string": "Error: No se puede comparar un Float con un String.",
+                    "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
+                },
+                "||" : {
+                    "int": "Error: No se puede comparar un Float con un Int.",
+                    "float": "Error: No se puede comparar un Float con un Float.",
                     "char": "Error: No se puede comparar un Float con un Char.",
                     "string": "Error: No se puede comparar un Float con un String.",
                     "Dataframe": "Error: No se puede comparar un Float con un Dataframe."
@@ -243,6 +271,20 @@ class semanticCube():
                     "char": "Error: No se puede comparar en String con un Char.",
                     "string": "int",
                     "Dataframe": "Error: No se puede comparar un String con un Dataframe."
+                },
+                "&&" : {
+                    "int": "Error: No se puede comparar en String con un Int.",
+                    "float": "Error: No se puede comparar en String con un Float.",
+                    "char": "Error: No se puede comparar en String con un Char.",
+                    "string": "Error: No se puede comparar en String con un String.",
+                    "Dataframe": "Error: No se puede comparar un String con un Dataframe."
+                },
+                "||" : {
+                    "int": "Error: No se puede comparar en String con un Int.",
+                    "float": "Error: No se puede comparar en String con un Float.",
+                    "char": "Error: No se puede comparar en String con un Char.",
+                    "string": "Error: No se puede comparar en String con un String.",
+                    "Dataframe": "Error: No se puede comparar un String con un Dataframe."
                 }
             },
 
@@ -322,6 +364,20 @@ class semanticCube():
                     "int": "Error: No se puede comparar en Char con un Int.",
                     "float": "Error: No se puede comparar en Char con un Float.",
                     "char": "int",
+                    "string": "Error: No se puede comparar en Char con un String.",
+                    "Dataframe": "Error: No se puede comparar en Char con un Dataframe."
+                },
+                "&&" : {
+                    "int": "Error: No se puede comparar en Char con un Int.",
+                    "float": "Error: No se puede comparar en Char con un Float.",
+                    "char": "Error: No se puede comparar en Char con un Char.",
+                    "string": "Error: No se puede comparar en Char con un String.",
+                    "Dataframe": "Error: No se puede comparar en Char con un Dataframe."
+                },
+                "||" : {
+                    "int": "Error: No se puede comparar en Char con un Int.",
+                    "float": "Error: No se puede comparar en Char con un Float.",
+                    "char": "Error: No se puede comparar en Char con un Char.",
                     "string": "Error: No se puede comparar en Char con un String.",
                     "Dataframe": "Error: No se puede comparar en Char con un Dataframe."
                 }
@@ -406,7 +462,22 @@ class semanticCube():
                     "char": "Error: No se puede comparar en Dataframe con un Char.",
                     "string": "Error: No se puede comparar en Dataframe con un String.",
                     "Dataframe": "Error: No se puede comparar en Dataframe con un Dataframe."
+                },
+                "&&" : {
+                    "int": "Error: No se puede comparar en Dataframe con un Int.",
+                    "float": "Error: No se puede comparar en Dataframe con un Float.",
+                    "char": "Error: No se puede comparar en Dataframe con un Char.",
+                    "string": "Error: No se puede comparar en Dataframe con un String.",
+                    "Dataframe": "Error: No se puede comparar en Dataframe con un Dataframe."
+                },
+                "||" : {
+                    "int": "Error: No se puede comparar en Dataframe con un Int.",
+                    "float": "Error: No se puede comparar en Dataframe con un Float.",
+                    "char": "Error: No se puede comparar en Dataframe con un Char.",
+                    "string": "Error: No se puede comparar en Dataframe con un String.",
+                    "Dataframe": "Error: No se puede comparar en Dataframe con un Dataframe."
                 }
+                
             }
         }
 
@@ -422,8 +493,8 @@ class semanticCube():
             8 : '==',
             9 : '>=',
             10 : '<=',
-            11 : 'AND',
-            12 : 'OR',
+            11 : '&&',
+            12 : '||',
             13 : 'Goto',
             14 : 'GotoV',
             15 : 'GotoF',
@@ -449,8 +520,8 @@ class semanticCube():
             '==' : 8,
             '>=' : 9,
             '<=' : 10,
-            'AND' : 11,
-            'OR' : 12,
+            '&&' : 11,
+            '||' : 12,
             'GOTO' : 13,
             'GOTOV' : 14,
             'GOTOF' : 15,
@@ -461,5 +532,5 @@ class semanticCube():
             'ESCRIBE' : 20,
             'REGRESA' : 21,
             'PARAM' : 22,
-            'VER' : 23
+            'VER' : 23,
         }

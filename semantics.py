@@ -147,7 +147,6 @@ def getVirtualMemoryFrom(scope, var_type, param, extra, required_space):
   compilation_memory_cell = None
   if not SHOW_VIRTUAL:
     if param == 'temp_num':
-      print("getting a temp...")
       compilation_memory_cell = getVarCountFromType(final_scope, var_type);
     elif param == 'id':
       compilation_memory_cell = extra
@@ -312,7 +311,6 @@ def insertCteToStructs(cte, cte_type):
     ids_stack.append(cte)
 
 def insertIdToStack(identificator):
-  offset = 0
   declaration_dimensions = {}
   var_id = identificator
   if var_id.find('[') != -1:
@@ -342,14 +340,12 @@ def insertIdToStack(identificator):
     quit()
   
   if given_dimensions == 0:
-    if not SHOW_VIRTUAL:
-      offset =  "[offset de {}]".format(str(offset))
     if scope == current_scope[0]:
       type_stack.append(function_directory[current_scope[0]].vars_table[var_id].type)
-      ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell + offset)
+      ids_stack.append(function_directory[current_scope[0]].vars_table[var_id].memory_cell)
     else:
       type_stack.append(function_directory['principal'].vars_table[var_id].type)
-      ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell + offset)
+      ids_stack.append(function_directory['principal'].vars_table[var_id].memory_cell)
     
 def insertOperator(operator):
   if SHOW_VIRTUAL:
@@ -384,14 +380,12 @@ def getAllowedOperators(origin):
     elif origin == 'comparacion':
       allowed_operators = ['>', '<', '>=', '<=', '==', '!=']
     elif origin == 'union':
-      allowed_operators = ['&', '|']
+      allowed_operators = ['&&', '||']
     elif origin == 'asignacion':
       allowed_operators = ['=']
   return allowed_operators
 
 def leaving(origin):
-  if origin == 'asignacion':
-    print(ids_stack)
   allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
       operator = operators_stack.pop()
@@ -408,7 +402,7 @@ def leaving(origin):
       if 'Error:' in result_type:
         raise EnvironmentError(result_type[7:])
       if (origin != 'asignacion'):
-        print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
+        # print("{} {} {} = {}".format(left_operand, operator, right_operand, result_type))
         generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num', None, 1), True, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
@@ -567,7 +561,7 @@ def insertCteToDirectory(cte, cte_type):
     virtual_cte_directory[0][cte_virtual_memory] = Constant(int(cte), cte_type, cte_virtual_memory)
 
 def generateReturnQuad(megaexpresion):
-  print(megaexpresion)
+  # print(megaexpresion)
   pq(quads)
   megaexpresion_return_type = None
   return_value = None
@@ -584,10 +578,10 @@ def generateReturnQuad(megaexpresion):
     final_return = None
     if SHOW_VIRTUAL:
       if type(return_value) == int: #Memory cell return
-        print("CTE (Memory cell) return {}".format(return_value))
+        # print("CTE (Memory cell) return {}".format(return_value))
         final_return = return_value
       else: #id return
-        print("ID return {}".format(return_value))
+        # print("ID return {}".format(return_value))
         final_return = function_directory[current_scope[0]].vars_table[return_value].memory_cell
     else:
       final_return = return_value
@@ -631,16 +625,16 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
         type_stack.append(result_type)
     else: # Asignacion
       final_temp_num = temp_num
-      function_return_type = result_type
       if append_temp: # PARCHE GUADALUPANO
+        function_return_type = result_type
         if SHOW_VIRTUAL:
           function_return_type = function_directory['principal'].vars_table[left_operand].type
         else:
           final_temp_num = "t{}{}".format(result_type[0], temp_num)
-      ids_stack.append(final_temp_num)
-      type_stack.append(function_return_type)
+        ids_stack.append(final_temp_num)
+        type_stack.append(function_return_type)
+        incrementVarCounter('temporary', function_return_type)
       new_quad = Quad(operator, left_operand, right_operand, final_temp_num)
-      incrementVarCounter('temporary', function_return_type)
     quads.append(new_quad)
 
 def getDimensions(var_id):
@@ -693,7 +687,7 @@ def addFunctionToDirectory(function_id, function_type):
     function_directory['principal'].vars_table[function_id] = Variable(function_id, function_type, {}, compilation_memory['global'][function_type].incrementUsedSpace(1))
 
 def includeVarsTableInFunction(id):
-  print("{} vars_table before deleting it: {}".format(id, var_directory[0]))
+  # print("{} vars_table before deleting it: {}".format(id, var_directory[0]))
   function_directory[id].vars_table = var_directory[0]
   var_directory[0] = {}
 
@@ -715,9 +709,6 @@ def getVarCountFromVarsTable(vars_table):
   char_counter = 0
   string_counter = 0
   dataframe_counter = 0
-
-  print("***BEFORE***")
-  print(vars_table)
 
   for key in vars_table:
     var_type = vars_table[key].type
@@ -741,9 +732,6 @@ def getVarCountFromVarsTable(vars_table):
     string_counter,
     dataframe_counter,
   )
-
-  print("***AFTER***")
-  print(final_var_counter)
   
   
   return final_var_counter
