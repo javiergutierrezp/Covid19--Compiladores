@@ -85,6 +85,7 @@ class VirtualMachine():
         self.param_stack = []
         self.current_scope = None
         self.processing_params = False
+        self.looking_for_return = False
 
     def getCte(self, virtual_memory):
         # print("entering getCte")
@@ -260,7 +261,8 @@ class VirtualMachine():
                         instruction_pointer += 1
                     # print("found a GotoF")
                 elif current_quad.operator == 16: # GOSUB
-                    # print("IN GOSUB")
+                    if self.function_directory[current_quad.left_operand].type:
+                        self.looking_for_return = True
                     self.processing_params = False
                     self.current_scope = None
                     # print("deleting current_scope")
@@ -280,6 +282,8 @@ class VirtualMachine():
                 elif current_quad.operator == 18: # ENDFUNC
                     # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
                     # print("***deleting the last local memory")
+                    if self.looking_for_return:
+                        raise EnvironmentError("Se declaró una función que debía retornar algo pero no se retorno nada.")
                     self.local_memory.pop()
                     instruction_pointer = previousIP_stack.pop()
                 elif current_quad.operator == 19: # LEE
@@ -298,6 +302,7 @@ class VirtualMachine():
                         print(prettyDisplay(var_type, computed_value))
                     instruction_pointer += 1
                 elif current_quad.operator == 21: # REGRESA
+                    self.looking_for_return = False
                     computed_value = self.accessMemory(current_quad.result_id)
                     function_memory_cell = self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell
                     destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(function_memory_cell)

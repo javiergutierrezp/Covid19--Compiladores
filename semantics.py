@@ -203,7 +203,6 @@ def receivedFunctionParameters(function_name):
       definition_param_type = function_directory[function_name].params[i].type
       given_param = ids_stack.pop()
       given_param_type = type_stack.pop()
-      print("Match... given({}), definition({}) (i: {})".format(given_param,function_directory[function_name].params[i], i))
       if SHOW_VIRTUAL:
         if i != 0:
           generateAndAppendQuad(getVirtualOperator('PARAM'), given_param, None, i, False, given_param_type)

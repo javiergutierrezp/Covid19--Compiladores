@@ -19,8 +19,6 @@ def main(argv):
     walker.walk(printer, tree)
 
     if parser.getNumberOfSyntaxErrors() == 0:
-        pq(quads)
-
         if SHOW_VIRTUAL:
             # Crear MV etc etc
             virtual_machine = VirtualMachine(quads, virtual_cte_directory[0], function_directory)
