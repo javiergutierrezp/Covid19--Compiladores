@@ -79,7 +79,7 @@ decision : SI PARENTESISI megaexpresion {addGotoF()} PARENTESISD ENTONCES bloque
 cargadatos : CARGAARCHIVO PARENTESISI ID COMA (identificador_accesa | cte) COMA (identificador_accesa | cte) COMA (identificador_accesa | cte) PARENTESISD
            ;   
 
-cte : CTESTRING {insertCteToStructs($CTESTRING.text, 'string')} | CTEINT {insertCteToStructs($CTEINT.text, 'int')} | CTEFLOAT {insertCteToStructs($CTEFLOAT.text, 'float')} | CTECHAR {insertCteToStructs($CTECHAR.text, 'char')}
+cte : CTESTRING {insertCteToStructs($CTESTRING.text, 'string')} | CTEINT {insertCteToStructs($CTEINT.text, 'int')} | RESTA CTEINT {insertCteToStructs("-" + $CTEINT.text, 'int')} |CTEFLOAT {insertCteToStructs($CTEFLOAT.text, 'float')} | RESTA CTEFLOAT {insertCteToStructs("-" + $CTEFLOAT.text, 'float')} | CTECHAR {insertCteToStructs($CTECHAR.text, 'char')}
     ;
 
 lectura : LEE PARENTESISI ((identificador_accesa {readId($identificador_accesa.text)}) (COMA identificador_accesa {readId($identificador_accesa.text)})*) PARENTESISD
