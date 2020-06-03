@@ -177,10 +177,10 @@ def validateFunctionExistance(function_name):
         ))
 
 def addVarToFunctionParams(var, function_name):
-  # print(function_directory)
   var_id = var[var.find(':')+1:]
   var_type = var[:var.find(':')]
-  function_directory[function_name].params.append(Variable(var_id, var_type, {}, None))
+  function_directory[function_name].params.append(var_type)
+  # incrementVarCounter('local', var_type)
 
 def incrementReceivedParamCounter():
   received_param_counter[0] += 1
@@ -199,15 +199,10 @@ def receivedFunctionParameters(function_name):
       len(function_directory[function_name].params),
       received_param_counter[0]
     ))
-  for i in range(0, len(function_directory[function_name].params)):
-      definition_param_type = function_directory[function_name].params[
-        len(function_directory[function_name].params) - 1 - i
-      ].type
+  for i in reversed(range(0, len(function_directory[function_name].params))):
+      definition_param_type = function_directory[function_name].params[i]
       given_param_type = type_stack.pop()
-      if SHOW_VIRTUAL:
-        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, i, False, given_param_type)
-      else:
-        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, "{}(param{})".format(getVirtualMemoryFrom('temporary', given_param_type, 'temp_num', None, 1),i + 1), False, given_param_type)
+
       if definition_param_type != given_param_type:
         raise EnvironmentError("""
           Given argument does not match the 
@@ -219,6 +214,12 @@ def receivedFunctionParameters(function_name):
           definition_param_type,
           given_param_type
         ))
+
+      if SHOW_VIRTUAL:
+        # param_id = function_directory[function_name].params[i].name
+        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, i, False, given_param_type)
+      else:
+        generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, "{}(param{})".format(getVirtualMemoryFrom('temporary', given_param_type, 'temp_num', None, 1),i + 1), False, given_param_type)
   received_param_counter[0] = 0
   
 def insertERASize(function_name):
@@ -573,13 +574,12 @@ def generateAndAppendQuad(operator, left_operand, right_operand, temp_num, appen
         ids_stack.append(memory_cell)
         type_stack.append(result_type)
     else: # Asignacion
+      final_temp_num = temp_num
+      function_return_type = result_type
       if append_temp: # PARCHE GUADALUPANO
-        final_temp_num = None
         if SHOW_VIRTUAL:
           function_return_type = function_directory['principal'].vars_table[left_operand].type
-          final_temp_num = temp_num
         else:
-          function_return_type = result_type
           final_temp_num = "t{}{}".format(result_type[0], temp_num)
       ids_stack.append(final_temp_num)
       type_stack.append(function_return_type)

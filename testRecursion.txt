@@ -1,15 +1,20 @@
 Programa Covid19;
 
-funcion int fact(int : n);
+funcion int fib (int : j);
+var
+int: a;
+int: b;
+int: c;
 {
-  si (n <= 1) entonces {
-    regresa(1);
-  } sino {
-    regresa( n * fact(n-1) );
-  }        
+    si (j <= 1) entonces {
+        regresa (j);
+    } sino {
+      regresa (fib(j-1) + fib(j-2));
+    }
 }
+
 
 principal () 
 {
-  fact(4);
+  escribe(fib(2));
 }
