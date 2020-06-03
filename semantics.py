@@ -198,10 +198,10 @@ def receivedFunctionParameters(function_name):
       len(function_directory[function_name].params),
       received_param_counter[0]
     ))
-  for i in range(0, len(function_directory[function_name].params)):
-      definition_param_type = function_directory[function_name].params[
-        len(function_directory[function_name].params) - 1 - i
-      ].type
+  # param_number = 0;
+  # import pdb; pdb.set_trace()
+  for i in reversed(range(0, len(function_directory[function_name].params))):
+      definition_param_type = function_directory[function_name].params[i].type
       given_param_type = type_stack.pop()
       if SHOW_VIRTUAL:
         generateAndAppendQuad(getVirtualOperator('PARAM'), ids_stack.pop(), None, i, False, given_param_type)
@@ -262,28 +262,30 @@ def addGotoEnd(origin):
     # Decir que al finalizar el bloque for, re-evaluar la condición
     evaluation_index = jump_stack.pop()
     iterator_index = evaluation_index - 1
-    generateAndAppendQuad(getVirtualOperator('+'), quads[iterator_index].result_id, getVirtualCte('1'), quads[iterator_index].result_id, False, "int")
+    generateAndAppendQuad(getVirtualOperator('+'), quads[iterator_index].result_id, getVirtualCte('1', 'int'), quads[iterator_index].result_id, False, "int")
     generateAndAppendQuad(getVirtualOperator('GOTO'), None, None, evaluation_index, False, None)
     # Decir que cuando N == M nos salimos del for
     quads[last_goto_index].result_id = len(quads)
 
-def getVirtualCte(cte):
+def getVirtualCte(cte, var_type):
+  if cte not in cte_directory:
+    insertCteToDirectory(cte, var_type)
+
   if SHOW_VIRTUAL:
     return cte_directory[0][cte].memory_cell
   else:
     return 1
 
 def forEvaluation():
-  last_quad = quads[len(quads) - 1]
-  type_stack.append('int')
+  # last_quad = quads[len(quads) - 1]
+  # type_stack.append('int')
   if SHOW_VIRTUAL:
-    operators_stack.append(8)
+    operators_stack.append(getVirtualOperator('<='))
   else:  
-    operators_stack.append('==')
-  ids_stack.append(last_quad.result_id)
+    operators_stack.append('<=')
   leaving('comparacion')
-  jump_stack.append(len(quads) - 1)
-  generateAndAppendQuad(getVirtualOperator('GOTOV'), ids_stack.pop(), None, None, False, None)
+  # ids_stack.append(last_quad.result_id)
+  generateAndAppendQuad(getVirtualOperator('GOTOF'), ids_stack.pop(), None, None, False, None)
   jump_stack.append(len(quads) - 1)
   type_stack.pop()
 
@@ -389,7 +391,7 @@ def getAllowedOperators(origin):
       allowed_operators = ['=']
   return allowed_operators
 
-def leaving(origin):
+def leaving(origin, append_temp = False):
   allowed_operators = getAllowedOperators(origin)
   if len(operators_stack) >= 1 and len(ids_stack) >= 2 and operators_stack[len(operators_stack) - 1] in allowed_operators:
       operator = operators_stack.pop()
@@ -410,6 +412,9 @@ def leaving(origin):
         generateAndAppendQuad(operator, left_operand, right_operand, getVirtualMemoryFrom('temporary', result_type, 'temp_num', None, 1), True, result_type)
       else:
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
+        if append_temp:
+          ids_stack.append(left_operand)
+          type_stack.append(result_type)
 
 def readId(identificator):
   var_id = identificator
@@ -537,7 +542,7 @@ def verify(dimension, var_id):
   if num_dimensions == 2:
     if dimension == "1": # Primera de dos dimensiones
       dim_2 = function_directory[scope].vars_table[var_id].dimensions['2']
-      generateAndAppendQuad(getVirtualOperator("*"), getVirtualCte(str(dim_2)), dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, 'int')
+      generateAndAppendQuad(getVirtualOperator("*"), getVirtualCte(str(dim_2), 'int'), dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, 'int')
     else: # Segunda de dos dimensiones
       memory_offset_temp = ids_stack.pop()
       generateAndAppendQuad(getVirtualOperator("+"), memory_offset_temp, dimension_virtual_memory, getVirtualMemoryFrom('temporary', 'int', 'temp_num', None, 1), True, type_stack.pop())
@@ -567,8 +572,6 @@ def insertCteToDirectory(cte, cte_type):
     virtual_cte_directory[0][cte_virtual_memory] = Constant(int(cte), cte_type, cte_virtual_memory)
 
 def generateReturnQuad(megaexpresion):
-  # print(megaexpresion)
-  pq(quads)
   megaexpresion_return_type = None
   return_value = None
   if (any(operator in megaexpresion for operator in operators)): # Operation

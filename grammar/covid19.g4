@@ -64,7 +64,7 @@ COMENTARIO: '/' .? '*/' -> skip;
 LINEACOMENTADA: '//' ~[\r\n]* -> skip;
 WS: [ \t\r\n\u000C]+ -> skip;
 
-nocondicional : DESDE identificador_accesa {insertIdToStack($identificador_accesa.text)} IGUAL {insertOperator($IGUAL.text)} expresion {leaving('asignacion')} HASTA expresion {forEvaluation()} HACER bloque {addGotoEnd('for')}
+nocondicional : DESDE identificador_accesa {insertIdToStack($identificador_accesa.text)} IGUAL {insertOperator($IGUAL.text)} expresion {leaving('asignacion', True)} {addMigajitaDePan()} HASTA expresion {forEvaluation()} HACER bloque {addGotoEnd('for')}
               ;
 
 condicional : MIENTRAS {addMigajitaDePan()} PARENTESISI megaexpresion {addGotoF()} PARENTESISD HAZ bloque {addGotoA()} {addGotoEnd('while')}

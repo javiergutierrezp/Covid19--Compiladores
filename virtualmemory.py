@@ -188,10 +188,8 @@ class VirtualMachine():
                     # print("found a ==")
                     computed_value = boolToInt(left_operand == right_operand)
                 elif current_quad.operator == 9:  # >=
-                    # print("found a >=")
                     computed_value = boolToInt(left_operand >= right_operand)
                 elif current_quad.operator == 10: # <=
-                    # print("found a <=")
                     computed_value = boolToInt(left_operand <= right_operand)
                 elif current_quad.operator == 11: # AND
                     computed_value = boolToInt(left_operand and right_operand)
