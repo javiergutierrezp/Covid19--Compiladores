@@ -1,0 +1,88 @@
+Programa Covid19;
+var
+int : c;
+int : a;
+int : g;
+float : g2;
+int : x;
+char : z;
+string: ejemplo;
+string: ejemplo1;
+string: ejemplo2;
+
+funcion aritmetica ();
+{
+   c = 10;
+   x = 5 * (3 + (10 / 2) - c)
+   escribe(x);
+   g = x + c;
+   escribe(g);
+   g2 = g / 3;
+   escribe(g2);
+}
+
+funcion comparaciones ();
+var
+{
+   c = 5;
+   a = 5;
+   g = a == c;
+   escribe(g);
+
+   c = 5;
+   a = 4;
+   g = a > c;
+   escribe(g);
+
+   c = 5;
+   a = 4;
+   g = a < c;
+   escribe(g);
+
+   c = 5;
+   a = 4;
+   g = a != c;
+   escribe(g);
+
+   c = 5;
+   a = 5;
+   g = a >= c;
+   escribe(g);
+
+   c = 5;
+   a = 5;
+   g = a <= c;
+   escribe(g);
+
+    a = 1;
+    c = 1;
+    g = a && c;
+    escribe(g);
+
+    a = 1;
+    c = 0;
+    g = a || c;
+    escribe(g);
+
+    a = 0;
+    c = 0;
+    g = a || c;
+    escribe(g);
+
+    a = 0;
+    c = 1;
+    g = a && c;
+    escribe(g); 
+}
+
+funcion strings ();
+{
+   ejemplo = "hola"
+   ejemplo1 = "como estas"
+   ejemplo2 = ejemplo + ejemplo1;
+}
+
+principal () 
+{
+   
+};

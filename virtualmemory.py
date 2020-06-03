@@ -258,17 +258,19 @@ class VirtualMachine():
                     self.local_memory.pop()
                     instruction_pointer = previousIP_stack.pop()
                 elif current_quad.operator == 19: # LEE
-                    computed_value = input("input")
                     destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(current_quad.left_operand)
+                    computed_value = input("Input ({}): ".format(destination_variable_type))
                     computed_value = castTo(destination_variable_type, computed_value)
                     self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                     instruction_pointer += 1
                 elif current_quad.operator == 20: # ESCRIBE
                     if type(current_quad.left_operand) == str:
                         computed_value = current_quad.left_operand
+                        print(computed_value)
                     else:
+                        _, var_type, _ = self.interpretVirtualMemory(current_quad.left_operand)
                         computed_value = self.accessMemory(current_quad.left_operand)
-                    print(computed_value)
+                        print(prettyDisplay(var_type, computed_value))
                     instruction_pointer += 1
                 elif current_quad.operator == 21: # REGRESA
                     computed_value = self.accessMemory(current_quad.result_id)
@@ -366,11 +368,23 @@ def boolToInt(operation):
 # * cte (en todas partes...) -> Expandirla dependiendo de ERA
 # * temporal (en todas partes...) -> Inicializarla desde el inicio
 
+def prettyDisplay(var_type, value):
+    if var_type == 'char':
+        return "'{}'".format(value)
+    elif var_type == 'string':
+        return '"{}"'.format(value)
+    else:
+        return value
+
 def castTo(var_type, value):
     if var_type == 'int':
         return int(value)
     elif var_type == 'float':
         return float(value)
+    elif var_type == 'char':
+        if len(value) > 1:
+            raise EnvironmentError('Error: las variables de tipo char sólo pueden contener 1 caracter')
+        return value
     else:
         return value
 

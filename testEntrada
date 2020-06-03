@@ -8,9 +8,20 @@ char : d;
 principal () 
 {
   lee(a);
+  escribe(a);
+
   lee(b);
+  escribe(b);
+
   lee(c);
+  escribe(c);
+
   lee(d);
+  escribe(d);
+
   lee(aa[1]);
+  escribe(aa[1]);
+
   lee(aaa[0][0]);
+  escribe(aaa[0][0]);
 }

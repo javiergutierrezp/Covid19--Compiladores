@@ -414,14 +414,42 @@ def leaving(origin):
         generateAndAppendQuad(operator, right_operand, None, left_operand, False, result_type)
 
 def readId(identificator):
-  if identificator in function_directory[current_scope[0]].vars_table: #local
-    id_type = function_directory[current_scope[0]].vars_table[identificator].type
-    generateAndAppendQuad(getVirtualOperator('LEE'), function_directory[current_scope[0]].vars_table[identificator].memory_cell, None, None, False, id_type)
-  elif identificator in function_directory['principal'].vars_table: #global
-    id_type = function_directory['principal'].vars_table[identificator].type
-    generateAndAppendQuad(getVirtualOperator('LEE'), function_directory['principal'].vars_table[identificator].memory_cell, None, None, False, id_type)
-  else: #no existe
-    raise EnvironmentError("The ID {}, that was intended to be received in 'lee()', was not found. Perhaps it hasn't been declared yet?".format(identificator))
+  var_id = identificator
+  if identificator.find('[') != -1: # Array
+    var_id = identificator[:identificator.find('[')]
+
+  scope = None
+  if var_id in function_directory[current_scope[0]].vars_table: # Current scope
+    scope = current_scope[0]
+  elif var_id in function_directory['principal'].vars_table: # Global
+    scope = 'principal'
+  else:
+    raise EnvironmentError("Hubo un error al intentar utilizar '{}' ¿Tal vez no fue declarado?".format(var_id))
+    quit()
+  
+  if identificator.find('[') != -1: # Array
+    given_dimensions = identificator.count('[')
+
+    declaration_dimensions = function_directory[scope].vars_table[var_id].dimensions
+    declaration_type = function_directory[scope].vars_table[var_id].type
+    declaration_base = function_directory[scope].vars_table[var_id].memory_cell
+
+    given_memory_cell = None
+
+    if given_dimensions == 1:
+      dim_1 = int(identificator[identificator.find('[') + 1:identificator.find(']')])
+      given_memory_cell = declaration_base + dim_1
+    else:
+      dim_1 = int(identificator[identificator.find('[') + 1:identificator.find(']')])
+      dim_2 = int(identificator[identificator.rfind('[') + 1:identificator.rfind(']')])
+      given_memory_cell = dim_1 * declaration_dimensions['2'] + declaration_base + dim_2
+
+    generateAndAppendQuad(getVirtualOperator('LEE'), given_memory_cell, None, None, False, declaration_type)
+  else: # ID
+    given_memory_cell = function_directory[scope].vars_table[identificator].memory_cell
+    given_type = function_directory[scope].vars_table[identificator].type
+
+    generateAndAppendQuad(getVirtualOperator('LEE'), given_memory_cell, None, None, False, given_type)
 
 def write(id_or_cte):
   if not id_or_cte: # expresion
