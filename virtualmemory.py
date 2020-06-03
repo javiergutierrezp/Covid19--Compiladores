@@ -84,6 +84,7 @@ class VirtualMachine():
 
         self.param_stack = []
         self.current_scope = None
+        self.processing_params = False
 
     def getCte(self, virtual_memory):
         # print("entering getCte")
@@ -157,7 +158,10 @@ class VirtualMachine():
         # Accesar memoria...
         if scope == 'local':
             # print("{}, {}".format(self.local_memory, len(self.local_memory)))
-            return self.local_memory[len(self.local_memory) - 1]
+            if self.processing_params and len(self.local_memory) > 1:
+                return self.local_memory[len(self.local_memory) - 2]
+            else:
+                return self.local_memory[len(self.local_memory) - 1]
             # self.accessTypeMemory('local', var_type, runtime_index)
         elif scope == 'temporary':
             return self.temporary_memory
@@ -256,25 +260,26 @@ class VirtualMachine():
                         instruction_pointer += 1
                     # print("found a GotoF")
                 elif current_quad.operator == 16: # GOSUB
-                    print("IN GOSUB")
-                    self.processing_param = False
+                    # print("IN GOSUB")
+                    self.processing_params = False
                     self.current_scope = None
-                    print("deleting current_scope")
+                    # print("deleting current_scope")
                     previousIP_stack.append(instruction_pointer + 1)
                     instruction_pointer = self.function_directory[current_quad.left_operand].first_quad
                 elif current_quad.operator == 17: # ERA
-                    print("IN ERA")
-                    self.processing_param = True
+                    # print("IN ERA")
+                    self.processing_params = True
                     self.current_scope = current_quad.left_operand
-                    print("updating current_scope: {}".format(self.current_scope))
+                    # print("updating current_scope: {}".format(self.current_scope))
                     var_count = self.function_directory[current_quad.left_operand].var_count
-                    print("creating new local memory with var_count: {}".format(var_count))
                     self.local_memory.append(RuntimeMemorySegment(var_count))
+                    # print("***creating new local memory with var_count: {}".format(var_count))
+                    # print("current local_memory length: {}".format(len(self.local_memory)))
                     instruction_pointer += 1
 
                 elif current_quad.operator == 18: # ENDFUNC
                     # printNotNone("enfunc... removing last local memory", self.local_memory[len(self.local_memory) - 1])
-                    print("deleting last local memory")
+                    # print("***deleting the last local memory")
                     self.local_memory.pop()
                     instruction_pointer = previousIP_stack.pop()
                 elif current_quad.operator == 19: # LEE
@@ -284,7 +289,6 @@ class VirtualMachine():
                     self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                     instruction_pointer += 1
                 elif current_quad.operator == 20: # ESCRIBE
-                    # import pdb; pdb.set_trace()
                     if type(current_quad.left_operand) == str:
                         computed_value = current_quad.left_operand
                         print(computed_value)
@@ -294,14 +298,13 @@ class VirtualMachine():
                         print(prettyDisplay(var_type, computed_value))
                     instruction_pointer += 1
                 elif current_quad.operator == 21: # REGRESA
-                    # import pdb; pdb.set_trace()
                     computed_value = self.accessMemory(current_quad.result_id)
                     function_memory_cell = self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell
                     destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(function_memory_cell)
                     self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)
                     instruction_pointer += 1
                 elif current_quad.operator == 22: # PARAM
-                    print("IN PARAM")
+                    # print("IN PARAM")
                     if current_quad.result_id: # Not the last param yet...
                         param_definition_type = self.function_directory[self.current_scope].params[current_quad.result_id].type
                     else: # Last param...
@@ -319,11 +322,9 @@ class VirtualMachine():
                     })
 
                     if not current_quad.result_id: # Last param! Let's set them all...
-                        import pdb; pdb.set_trace()
                         while self.param_stack:
                             param = self.param_stack.pop()
                             self.setMemorySegmentValue('local', param['value'], None, param['type'])
-                        import pdb; pdb.set_trace()
                     instruction_pointer += 1
 
                 elif current_quad.operator == 23: # VER

@@ -218,7 +218,7 @@ def receivedFunctionParameters(function_name):
           was expecting type '{}' but received type '{}'
         """.format(
           function_name,
-          len(function_directory[function_name].params) - i,
+          i + 1,
           definition_param_type,
           given_param_type
         ))

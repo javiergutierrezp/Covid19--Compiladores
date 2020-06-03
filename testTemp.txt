@@ -2,18 +2,30 @@ Programa Covid19;
 var
 int: g;
 
-funcion int uno (int : a, int: b);
+funcion int fib(int : n);
 var
-int: c;
+int: calc1;
+int: calc2;
 {
-  c = 15;
-  escribe(a);
-  escribe(b);
-  regresa (b);
+  si (n <= 1) entonces {
+    regresa(n);
+  } sino {
+    calc1 = fib(n-1);
+    calc2 = fib(n-2);
+    regresa(calc1 + calc2);
+  }
+}
+
+funcion int fact(int : n);
+{
+  si (n == 1) entonces {
+    regresa(n);
+  } sino {
+    regresa(n * fact(n-1));
+  }
 }
 
 principal ()
 {
-  g = uno(10, 20);
-  escribe(g);
+  escribe(fact(10));
 }
