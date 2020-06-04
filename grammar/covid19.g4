@@ -115,7 +115,7 @@ regresa : REGRESA PARENTESISI megaexpresion PARENTESISD {generateReturnQuad($meg
 asignacion : identificador_accesa {insertIdToStack($identificador_accesa.text)} IGUAL {insertOperator($IGUAL.text)} megaexpresion {leaving('asignacion')} 
            ;
 
-identificador_accesa : ID (CORCHETECUADRADOI expresion {verify('1', $ID.text)} CORCHETECUADRADOD (CORCHETECUADRADOI expresion {verify('2', $ID.text)} CORCHETECUADRADOD)?)?
+identificador_accesa : ID (CORCHETECUADRADOI {insertParenthesis()} expresion {verify('1', $ID.text)} {deleteParenthesis()} CORCHETECUADRADOD (CORCHETECUADRADOI {insertParenthesis()} expresion {verify('2', $ID.text)} {deleteParenthesis()} CORCHETECUADRADOD)?)?
                      ;           
 
 identificador_definicion : ID (CORCHETECUADRADOI CTEINT {insertCteToDirectory($CTEINT.text, 'int')} CORCHETECUADRADOD (CORCHETECUADRADOI CTEINT {insertCteToDirectory($CTEINT.text, 'int')} CORCHETECUADRADOD)?)?

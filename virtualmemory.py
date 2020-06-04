@@ -111,14 +111,17 @@ class VirtualMachine():
         elif scope == 'temporary':
             self.temporary_memory.set(value, runtime_memory_index, variable_type)
 
-    def accessMemory(self, virtual_memory):
+    def accessMemory(self, virtual_memory, origin = ''):
         final_virtual_memory = virtual_memory
         value = None
 
         if type(virtual_memory) == str and 'lit' in virtual_memory:
             value = int(virtual_memory[virtual_memory.find('(') + 1 :-1])
         elif type(virtual_memory) == str and 'meta' in virtual_memory:
-            value = self.accessMemory(int(virtual_memory[virtual_memory.find('(') + 1:-1]))
+            if origin == 'asignacion':
+                value = self.accessMemory(int(virtual_memory[virtual_memory.find('(') + 1:-1]))
+            else:
+                value = self.accessMemory(self.accessMemory(int(virtual_memory[virtual_memory.find('(') + 1:-1])))
         else:
             # print("Entreing access memory...")
             runtime_memory_index, variable_type, scope = self.interpretVirtualMemory(virtual_memory)
@@ -227,15 +230,16 @@ class VirtualMachine():
                     final_left_operand = self.accessMemory(current_quad.left_operand)
                 else:
                     if type(current_quad.left_operand) == str and 'meta' in current_quad.left_operand:
-                        final_left_operand = self.accessMemory(self.accessMemory(current_quad.left_operand))
+                        final_left_operand = self.accessMemory(current_quad.left_operand)
                     else:
                         final_left_operand = self.accessMemory(self.function_directory['principal'].vars_table[current_quad.left_operand].memory_cell)
                 computed_value = final_left_operand
 
                 final_result_id = current_quad.result_id
                 if type(current_quad.result_id) == str and 'meta' in current_quad.result_id:
-                    final_result_id = self.accessMemory(current_quad.result_id)
+                    final_result_id = self.accessMemory(current_quad.result_id, 'asignacion')
                 
+
                 destination_runtime_memory_index, destination_variable_type, destination_scope = self.interpretVirtualMemory(final_result_id)
 
                 self.setMemorySegmentValue(destination_scope, computed_value, destination_runtime_memory_index, destination_variable_type)

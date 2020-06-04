@@ -1,0 +1,146 @@
+Programa Covid19;
+var
+int : array[5], matriz[4][4], temp_sum, acceso;
+int : i, j, var_aux, temp, printer, var_aux2, aux1, aux2;
+
+
+funcion sort();
+{
+  array[0] = 3;
+  array[1] = 4;
+  array[2] = 1;
+  array[3] = 0;
+  j = 0;
+  i = 1;
+
+  escribe("- Arreglo antes del sort -");
+
+  desde i = 0 hasta 3 hacer {
+    printer = array[i];
+    escribe(printer);
+  }
+
+  desde i = 0 hasta 4 hacer {
+    var_aux = i;
+    desde j = i + 1 hasta 3 hacer {
+      aux1 = array[j];
+      aux2 = array[var_aux];
+      si (aux1 < aux2) entonces {
+        var_aux = j;
+      }
+    }
+    temp = array[i];
+    array[i] = array[var_aux];
+    array[var_aux] = temp;
+  }
+
+  escribe("- Arreglo despues del sort -");
+  
+  desde i = 0 hasta 3 hacer {
+    printer = array[i];
+    escribe(printer);
+  }
+}
+
+funcion int find (int : toFind);
+var
+int : array[5], cont, holder, encontramos_el_dato;
+{
+  array[0] = 0;
+  array[1] = 1;
+  array[2] = 3;
+  array[3] = 4;
+
+  encontramos_el_dato = 0;
+
+  desde cont = 0 hasta 3 hacer {
+    holder = array[cont];
+    si (holder == toFind) entonces {
+      encontramos_el_dato = 1;
+      regresa(cont);
+    }
+  }
+
+  si (encontramos_el_dato == 0) entonces {
+    regresa(-1);
+  } 
+}
+
+funcion int fib(int : n);
+var
+int: calc1;
+int: calc2;
+{
+  si (n <= 1) entonces {
+    regresa(n);
+  } sino {
+    calc1 = fib(n-1);
+    calc2 = fib(n-2);
+    regresa(calc1 + calc2);
+  }
+}
+
+funcion int fact(int : n);
+{
+  si (n == 1) entonces {
+    regresa(n);
+  } sino {
+    regresa(n * fact(n-1));
+  }
+}
+
+funcion int pelos(int: a, int: b);
+{
+  regresa(a * b);
+}
+
+funcion int factCiclico(int : n);
+var
+int : i, aux;
+{
+  aux = 1;
+  desde i = 1 hasta n hacer {
+    aux = pelos(aux, i);
+  }
+  regresa(aux);
+}
+
+funcion matrices();
+{
+  desde i = 0 hasta 3 hacer {
+    desde j = 0 hasta 3 hacer {
+      matriz[i][j] = i + j;
+    }
+  }
+  temp_sum = 0;
+  desde i = 0 hasta 3 hacer {
+    desde j = 0 hasta 3 hacer {
+      temp_sum = temp_sum + matriz[i][j];
+    }
+  }
+  escribe(temp_sum);
+}
+
+principal() 
+{
+  escribe("--- Funcion Sort ---");
+  sort();
+  escribe("--- Funcion Find (Buscando el index de 3) ---");
+  escribe(find(3));
+  escribe("--- Funcion Fact ---");
+  escribe(fact(10));
+  escribe("--- Funcion fib ---");
+  escribe(fib(7));
+  escribe("--- Funcion matrices ---");
+  matrices();
+}
+
+
+
+
+
+
+
+
+
+
